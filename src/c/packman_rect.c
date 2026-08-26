@@ -84,7 +84,8 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   if (cherries_time > pacman_time_minutes) {
     packman_draw_cherries(ctx, point_on_rectangle(game_track, cherries_time));
   } else {
-    packman_draw_fruit_bonus(ctx, point_on_rectangle(game_track, cherries_time));
+    packman_draw_fruit_bonus(ctx, point_on_rectangle(game_track, cherries_time),
+                             fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   }
   packman_draw_pacman(ctx, point_on_rectangle(game_track, pacman_time_minutes),
                       pacman_time_minutes, mouth_open);

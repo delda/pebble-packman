@@ -8,6 +8,7 @@ static const PackmanRoundLayout s_gabbro_layout = {
   .inner_border_inset = 12,
   .clock_radius_divisor = 3,
   .hour_text_inset = 4,
+  .fruit_bonus_font_key = FONT_KEY_GOTHIC_18_BOLD,
 };
 
 void packman_draw_gabbro(Layer *layer, GContext *ctx, const ClockTime *clock_time,

@@ -68,7 +68,8 @@ void packman_draw_round_layout(Layer *layer, GContext *ctx, const ClockTime *clo
   if (cherries_time > pacman_time_minutes) {
     packman_draw_cherries(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time));
   } else {
-    packman_draw_fruit_bonus(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time));
+    packman_draw_fruit_bonus(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time),
+                             fonts_get_system_font(layout->fruit_bonus_font_key));
   }
   packman_draw_pacman(ctx, point_on_24_hour_clock(center, dot_orbit_radius, pacman_time_minutes),
                       pacman_time_minutes, mouth_open);

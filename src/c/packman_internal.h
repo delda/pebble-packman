@@ -13,7 +13,7 @@ int packman_cherries_time(void);
 void packman_draw_pacman(GContext *ctx, GPoint position, int time_minutes, bool mouth_open);
 void packman_draw_ghost(GContext *ctx, GPoint position, GColor color, bool body_visible);
 void packman_draw_cherries(GContext *ctx, GPoint position);
-void packman_draw_fruit_bonus(GContext *ctx, GPoint position);
+void packman_draw_fruit_bonus(GContext *ctx, GPoint position, GFont font);
 void packman_draw_clock_hands(GContext *ctx, GPoint center, int radius,
                               const ClockTime *clock_time);
 
@@ -22,6 +22,7 @@ typedef struct {
   int inner_border_inset;
   int clock_radius_divisor;
   int hour_text_inset;
+  const char *fruit_bonus_font_key;
 } PackmanRoundLayout;
 
 void packman_draw_round_layout(Layer *layer, GContext *ctx, const ClockTime *clock_time,

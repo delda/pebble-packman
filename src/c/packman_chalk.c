@@ -7,7 +7,8 @@ static const PackmanRoundLayout s_chalk_layout = {
   .border_inset = 2,
   .inner_border_inset = 12,
   .clock_radius_divisor = 3,
-  .hour_text_inset = 5,
+  .hour_text_inset = 6,
+  .fruit_bonus_font_key = FONT_KEY_GOTHIC_14_BOLD,
 };
 
 void packman_draw_chalk(Layer *layer, GContext *ctx, const ClockTime *clock_time,

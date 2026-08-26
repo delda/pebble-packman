@@ -100,15 +100,15 @@ void packman_draw_cherries(GContext *ctx, GPoint position) {
   graphics_fill_circle(ctx, GPoint(position.x + 3, position.y + 2), 3);
 }
 
-void packman_draw_fruit_bonus(GContext *ctx, GPoint position) {
+void packman_draw_fruit_bonus(GContext *ctx, GPoint position, GFont font) {
   GRect text_bounds = GRect(position.x - 18, position.y - 10, 37, 20);
   graphics_context_set_text_color(ctx, GColorVividCerulean);
-  graphics_draw_text(ctx, "100", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+  graphics_draw_text(ctx, "100", font,
                      GRect(text_bounds.origin.x + 1, text_bounds.origin.y + 1,
                            text_bounds.size.w, text_bounds.size.h),
                      GTextOverflowModeFill, GTextAlignmentCenter, NULL);
   graphics_context_set_text_color(ctx, GColorYellow);
-  graphics_draw_text(ctx, "100", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+  graphics_draw_text(ctx, "100", font,
                      text_bounds,
                      GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
