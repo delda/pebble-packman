@@ -10,7 +10,7 @@ static AppTimer *s_animation_timer;
 static int s_animation_elapsed_ms;
 static int s_animation_duration_ms;
 
-#define FULL_TURN_DURATION_MS 2500
+#define FULL_TURN_DURATION_MS 3000
 #define ANIMATION_FRAME_MS 33
 #define MOUTH_ANIMATION_FRAME_MS 120
 
