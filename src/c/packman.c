@@ -78,14 +78,16 @@ static void draw_pacman(GContext *ctx, GPoint center, int radius, int time_minut
   }
 }
 
-static void draw_ghost(GContext *ctx, GPoint position, GColor color) {
-  graphics_context_set_fill_color(ctx, color);
-  graphics_fill_circle(ctx, GPoint(position.x, position.y - 1), 6);
-  graphics_fill_rect(ctx, GRect(position.x - 6, position.y - 1, 13, 6), 0, GCornerNone);
-  graphics_fill_rect(ctx, GRect(position.x - 6, position.y + 5, 13, 2), 0, GCornerNone);
-  for (int point = -4; point <= 5; point += 3) {
-    graphics_fill_rect(ctx, GRect(position.x + point - 1, position.y + 7, 2, 1), 0, GCornerNone);
-    graphics_fill_rect(ctx, GRect(position.x + point, position.y + 8, 1, 1), 0, GCornerNone);
+static void draw_ghost(GContext *ctx, GPoint position, GColor color, bool body_visible) {
+  if (body_visible) {
+    graphics_context_set_fill_color(ctx, color);
+    graphics_fill_circle(ctx, GPoint(position.x, position.y - 1), 6);
+    graphics_fill_rect(ctx, GRect(position.x - 6, position.y - 1, 13, 6), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(position.x - 6, position.y + 5, 13, 2), 0, GCornerNone);
+    for (int point = -4; point <= 5; point += 3) {
+      graphics_fill_rect(ctx, GRect(position.x + point - 1, position.y + 7, 2, 1), 0, GCornerNone);
+      graphics_fill_rect(ctx, GRect(position.x + point, position.y + 8, 1, 1), 0, GCornerNone);
+    }
   }
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, GPoint(position.x - 3, position.y - 1), 2);
@@ -150,9 +152,9 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   const GColor ghost_colors[] = { GColorRed, GColorVividCerulean, GColorFolly, GColorOrange };
   for (int ghost = 0; ghost < 4; ++ghost) {
     int ghost_position_time = ghost_time(current_time_minutes, ghost);
-    if (ghost_position_time > pacman_time_minutes) {
-      draw_ghost(ctx, point_on_24_hour_clock(center, dot_orbit_radius, ghost_position_time), ghost_colors[ghost]);
-    }
+    bool body_visible = ghost_position_time > pacman_time_minutes;
+    draw_ghost(ctx, point_on_24_hour_clock(center, dot_orbit_radius, ghost_position_time),
+               ghost_colors[ghost], body_visible);
   }
   int cherries_time = cherry_time(current_time_minutes);
   if (cherries_time > pacman_time_minutes) {
