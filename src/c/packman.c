@@ -6,6 +6,7 @@
 #define PACMAN_RADIUS 8
 #define DECORATION_POSITIONS 12
 #define POSITIONS_PER_QUARTER (DECORATION_POSITIONS / 4)
+#define GHOST_POSITIONS_PER_QUARTER (POSITIONS_PER_QUARTER - 1)
 #define QUARTER_DURATION_MINUTES (MINUTES_PER_DAY / 4)
 
 static GPoint point_on_border(GPoint center, int radius, int hour) {
@@ -26,12 +27,12 @@ static uint32_t next_random(uint32_t *state) {
   return *state;
 }
 
-// Each ghost stays in a separate quarter of the dial, but its position within
-// that quarter changes with the displayed minute.
+// Each ghost stays in a separate quarter of the dial and only uses the inner
+// positions, leaving the dot at the quarter boundary free.
 static int ghost_time(int current_time_minutes, int ghost) {
   uint32_t random_state = (uint32_t)current_time_minutes + 0x9e3779b9u + ghost;
-  int position_in_quarter = next_random(&random_state) % POSITIONS_PER_QUARTER;
-  return ghost * QUARTER_DURATION_MINUTES + position_in_quarter * 2 * MINUTES_PER_HOUR;
+  int position_in_quarter = next_random(&random_state) % GHOST_POSITIONS_PER_QUARTER;
+  return ghost * QUARTER_DURATION_MINUTES + (position_in_quarter + 1) * 2 * MINUTES_PER_HOUR;
 }
 
 static int cherry_time(int current_time_minutes) {
@@ -39,6 +40,9 @@ static int cherry_time(int current_time_minutes) {
   int first_position = next_random(&random_state) % DECORATION_POSITIONS;
   for (int offset = 0; offset < DECORATION_POSITIONS; ++offset) {
     int position = (first_position + offset * 5) % DECORATION_POSITIONS;
+    if (position % POSITIONS_PER_QUARTER == 0) {
+      continue;
+    }
     int time_minutes = position * 2 * MINUTES_PER_HOUR;
     bool occupied_by_ghost = false;
     for (int ghost = 0; ghost < 4; ++ghost) {
@@ -52,7 +56,7 @@ static int cherry_time(int current_time_minutes) {
     }
   }
 
-  return 0;
+  return -1;
 }
 
 static void draw_pacman(GContext *ctx, GPoint center, int radius, int time_minutes,
