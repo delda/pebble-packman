@@ -7,7 +7,7 @@ static const PackmanRoundLayout s_gabbro_layout = {
   .border_inset = 2,
   .inner_border_inset = 12,
   .clock_radius_divisor = 3,
-  .hour_text_inset = 5,
+  .hour_text_inset = 4,
 };
 
 void packman_draw_gabbro(Layer *layer, GContext *ctx, const ClockTime *clock_time,

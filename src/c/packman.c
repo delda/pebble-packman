@@ -93,17 +93,23 @@ void packman_draw_ghost(GContext *ctx, GPoint position, GColor color, bool body_
 
 void packman_draw_cherries(GContext *ctx, GPoint position) {
   graphics_context_set_stroke_color(ctx, GColorGreen);
-  graphics_draw_line(ctx, GPoint(position.x - 3, position.y + 2), GPoint(position.x, position.y - 5));
-  graphics_draw_line(ctx, GPoint(position.x + 3, position.y + 2), GPoint(position.x, position.y - 5));
+  graphics_draw_line(ctx, GPoint(position.x - 3, position.y + 2), GPoint(position.x, position.y - 7));
+  graphics_draw_line(ctx, GPoint(position.x + 3, position.y + 2), GPoint(position.x, position.y - 7));
   graphics_context_set_fill_color(ctx, GColorRed);
   graphics_fill_circle(ctx, GPoint(position.x - 3, position.y + 2), 3);
   graphics_fill_circle(ctx, GPoint(position.x + 3, position.y + 2), 3);
 }
 
 void packman_draw_fruit_bonus(GContext *ctx, GPoint position) {
+  GRect text_bounds = GRect(position.x - 18, position.y - 10, 37, 20);
+  graphics_context_set_text_color(ctx, GColorVividCerulean);
+  graphics_draw_text(ctx, "100", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                     GRect(text_bounds.origin.x + 1, text_bounds.origin.y + 1,
+                           text_bounds.size.w, text_bounds.size.h),
+                     GTextOverflowModeFill, GTextAlignmentCenter, NULL);
   graphics_context_set_text_color(ctx, GColorYellow);
   graphics_draw_text(ctx, "100", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-                     GRect(position.x - 18, position.y - 10, 37, 20),
+                     text_bounds,
                      GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
