@@ -132,6 +132,52 @@ static void draw_fruit_bonus(GContext *ctx, GPoint position) {
                      GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
+static void draw_tapered_hand(GContext *ctx, GPoint center, int32_t angle, int length,
+                              int tail_length, int base_width, int tip_width, GColor color) {
+  int direction_x = cos_lookup(angle) / (TRIG_MAX_RATIO / 100);
+  int direction_y = sin_lookup(angle) / (TRIG_MAX_RATIO / 100);
+  GPoint points[] = {
+    GPoint(center.x - direction_x * tail_length / 100 - direction_y * base_width / 200,
+           center.y - direction_y * tail_length / 100 + direction_x * base_width / 200),
+    GPoint(center.x - direction_x * tail_length / 100 + direction_y * base_width / 200,
+           center.y - direction_y * tail_length / 100 - direction_x * base_width / 200),
+    GPoint(center.x + direction_x * length / 100 + direction_y * tip_width / 200,
+           center.y + direction_y * length / 100 - direction_x * tip_width / 200),
+    GPoint(center.x + direction_x * length / 100 - direction_y * tip_width / 200,
+           center.y + direction_y * length / 100 + direction_x * tip_width / 200),
+  };
+  GPathInfo hand = {
+    .num_points = ARRAY_LENGTH(points),
+    .points = points,
+  };
+  GPath *path = gpath_create(&hand);
+
+  graphics_context_set_fill_color(ctx, color);
+  gpath_draw_filled(ctx, path);
+  gpath_destroy(path);
+}
+
+static void draw_clock_hands(GContext *ctx, GPoint center, int radius,
+                             const ClockTime *clock_time) {
+  int minute_length = radius - 1;
+  int hour_length = radius * 2 / 3;
+  int minute = clock_time->minute;
+  int hour_minutes = (clock_time->hour % 12) * MINUTES_PER_HOUR + minute;
+  int32_t hour_angle = TRIG_MAX_ANGLE * hour_minutes / (12 * MINUTES_PER_HOUR)
+                       - QUARTER_TURN;
+  int32_t minute_angle = TRIG_MAX_ANGLE * minute / MINUTES_PER_HOUR - QUARTER_TURN;
+
+  draw_tapered_hand(ctx, center, hour_angle, hour_length, 3, 14, 4, GColorBlack);
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_circle(ctx, center, 10);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_circle(ctx, center, 8);
+  draw_tapered_hand(ctx, center, minute_angle, minute_length, 3, 16, 8, GColorWhite);
+  draw_tapered_hand(ctx, center, minute_angle, minute_length, 2, 12, 3, GColorBlack);
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_circle(ctx, center, 6);
+}
+
 void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
                   int pacman_time_minutes, bool mouth_open) {
   GRect bounds = layer_get_bounds(layer);
@@ -158,6 +204,7 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   graphics_fill_circle(ctx, center, inner_radius);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, white_circle_radius);
+  draw_clock_hands(ctx, center, white_circle_radius, clock_time);
 
   graphics_context_set_text_color(ctx, GColorBlack);
   for (int hour = 0; hour < 24; ++hour) {
