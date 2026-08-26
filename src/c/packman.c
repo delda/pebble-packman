@@ -6,8 +6,9 @@
 #define PACMAN_RADIUS 8
 #define DECORATION_POSITIONS 12
 #define POSITIONS_PER_QUARTER (DECORATION_POSITIONS / 4)
-#define GHOST_POSITIONS_PER_QUARTER (POSITIONS_PER_QUARTER - 1)
 #define QUARTER_DURATION_MINUTES (MINUTES_PER_DAY / 4)
+#define DOT_INTERVAL_MINUTES (MINUTES_PER_DAY / MINUTES_PER_HOUR)
+#define GHOST_POSITIONS_PER_QUARTER (QUARTER_DURATION_MINUTES / DOT_INTERVAL_MINUTES - 1)
 
 static GPoint point_on_border(GPoint center, int radius, int hour) {
   int32_t angle = (TRIG_MAX_ANGLE * hour / 24) + QUARTER_TURN;
@@ -27,12 +28,16 @@ static uint32_t next_random(uint32_t *state) {
   return *state;
 }
 
-// Each ghost stays in a separate quarter of the dial and only uses the inner
-// positions, leaving the dot at the quarter boundary free.
+static bool s_decoration_positions_initialized;
+static int s_ghost_position_times[4];
+static int s_cherries_time;
+
+// Each ghost stays in a separate quarter of the dial and can use every inner
+// dot position, leaving only the dot at the quarter boundary free.
 static int ghost_time(int current_time_minutes, int ghost) {
   uint32_t random_state = (uint32_t)current_time_minutes + 0x9e3779b9u + ghost;
   int position_in_quarter = next_random(&random_state) % GHOST_POSITIONS_PER_QUARTER;
-  return ghost * QUARTER_DURATION_MINUTES + (position_in_quarter + 1) * 2 * MINUTES_PER_HOUR;
+  return ghost * QUARTER_DURATION_MINUTES + (position_in_quarter + 1) * DOT_INTERVAL_MINUTES;
 }
 
 static int cherry_time(int current_time_minutes) {
@@ -57,6 +62,20 @@ static int cherry_time(int current_time_minutes) {
   }
 
   return -1;
+}
+
+// Pick the decoration positions once for this app session. Their visibility
+// still changes as Pac-Man reaches them, but their position never does.
+static void initialize_decoration_positions(int current_time_minutes) {
+  if (s_decoration_positions_initialized) {
+    return;
+  }
+
+  for (int ghost = 0; ghost < 4; ++ghost) {
+    s_ghost_position_times[ghost] = ghost_time(current_time_minutes, ghost);
+  }
+  s_cherries_time = cherry_time(current_time_minutes);
+  s_decoration_positions_initialized = true;
 }
 
 static void draw_pacman(GContext *ctx, GPoint center, int radius, int time_minutes,
@@ -127,6 +146,8 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   int border_text_radius = border_radius - border_width / 2 - 1;
   int current_time_minutes = clock_time_in_minutes(clock_time);
 
+  initialize_decoration_positions(current_time_minutes);
+
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
   graphics_context_set_fill_color(ctx, GColorBlack);
@@ -158,12 +179,12 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
 
   const GColor ghost_colors[] = { GColorRed, GColorVividCerulean, GColorFolly, GColorOrange };
   for (int ghost = 0; ghost < 4; ++ghost) {
-    int ghost_position_time = ghost_time(current_time_minutes, ghost);
+    int ghost_position_time = s_ghost_position_times[ghost];
     bool body_visible = ghost_position_time > pacman_time_minutes;
     draw_ghost(ctx, point_on_24_hour_clock(center, dot_orbit_radius, ghost_position_time),
                ghost_colors[ghost], body_visible);
   }
-  int cherries_time = cherry_time(current_time_minutes);
+  int cherries_time = s_cherries_time;
   if (cherries_time > pacman_time_minutes) {
     draw_cherries(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time));
   } else {
