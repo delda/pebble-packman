@@ -106,6 +106,13 @@ static void draw_cherries(GContext *ctx, GPoint position) {
   graphics_fill_circle(ctx, GPoint(position.x + 3, position.y + 2), 3);
 }
 
+static void draw_fruit_bonus(GContext *ctx, GPoint position) {
+  graphics_context_set_text_color(ctx, GColorYellow);
+  graphics_draw_text(ctx, "100", fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                     GRect(position.x - 18, position.y - 10, 37, 20),
+                     GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+}
+
 void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
                   int pacman_time_minutes, bool mouth_open) {
   GRect bounds = layer_get_bounds(layer);
@@ -159,6 +166,8 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   int cherries_time = cherry_time(current_time_minutes);
   if (cherries_time > pacman_time_minutes) {
     draw_cherries(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time));
+  } else {
+    draw_fruit_bonus(ctx, point_on_24_hour_clock(center, dot_orbit_radius, cherries_time));
   }
   draw_pacman(ctx, center, dot_orbit_radius, pacman_time_minutes, mouth_open);
 }
