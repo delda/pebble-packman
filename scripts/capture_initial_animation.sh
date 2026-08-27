@@ -87,6 +87,17 @@ print(state[sys.argv[1]][next(iter(state[sys.argv[1]]))]["qemu"]["monitor"])
   done
 }
 
+emulator_pypkjs_port() {
+  python3 -c '
+import json
+import sys
+
+with open("/tmp/pb-emulator.json", encoding="utf-8") as state_file:
+    state = json.load(state_file)
+print(state[sys.argv[1]][next(iter(state[sys.argv[1]]))]["pypkjs"]["port"])
+' "$PLATFORM"
+}
+
 trap stop_emulator EXIT
 
 cd "$PROJECT_DIR"
@@ -103,19 +114,13 @@ rm -f "$OUTPUT_DIR"/frame-*.png "$OUTPUT_DIR"/frame-*.ppm "$OUTPUT_GIF"
 
 start_emulator
 
-# At 23:59 the Pac-Man animation uses virtually its full three-second duration.
-pebble emu-set-time --emulator "$PLATFORM" --utc "${ANIMATION_TIME}:00"
-sleep 1
-pebble install --emulator "$PLATFORM" build/pebble-packman.pbw
-sleep 1
-pebble install --emulator "$PLATFORM"
-
-# Return to the launcher, open the Apps list, then select Packman. This
-# produces a fresh app launch, which invokes window_load() immediately before
-# the animation frames are captured.
-pebble emu-button --emulator "$PLATFORM" click back
-pebble emu-button --emulator "$PLATFORM" click select
-pebble emu-button --emulator "$PLATFORM" click select
+# Commands using --emulator synchronise the emulator to the host's current
+# time when they connect. Set ANIMATION_TIME first, then install through the
+# pypkjs proxy so the installation does not overwrite it.
+readonly PYPKJS_PORT="$(emulator_pypkjs_port)"
+readonly PYPKJS_ADDRESS="localhost:$PYPKJS_PORT"
+pebble emu-set-time --emulator "$PLATFORM" "${ANIMATION_TIME}:00"
+pebble install --phone "$PYPKJS_ADDRESS" build/pebble-packman.pbw
 sleep "$FRAME_INTERVAL_SECONDS"
 
 capture_animation
