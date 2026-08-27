@@ -11,6 +11,8 @@ int packman_ghost_time(int ghost);
 int packman_cherries_time(void);
 
 void packman_draw_pacman(GContext *ctx, GPoint position, int time_minutes, bool mouth_open);
+void packman_draw_pacman_facing(GContext *ctx, GPoint position, int32_t mouth_direction,
+                                bool mouth_open);
 void packman_draw_ghost(GContext *ctx, GPoint position, GColor color, bool body_visible);
 void packman_draw_cherries(GContext *ctx, GPoint position);
 void packman_draw_fruit_bonus(GContext *ctx, GPoint position, GFont font);

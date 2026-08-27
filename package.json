@@ -13,10 +13,11 @@
     "targetPlatforms": [
       "basalt",
       "chalk",
+      "emery",
       "gabbro"
     ],
     "watchapp": {
-      "watchface": false
+      "watchface": true
     },
     "messageKeys": [
       "dummy"

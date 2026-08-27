@@ -59,12 +59,16 @@ int packman_cherries_time(void) { return s_cherries_time; }
 void packman_draw_pacman(GContext *ctx, GPoint position, int time_minutes, bool mouth_open) {
   int32_t direction = (TRIG_MAX_ANGLE * time_minutes / (HOURS_PER_DAY * MINUTES_PER_HOUR))
                       + TRIG_MAX_ANGLE / 2;
+  packman_draw_pacman_facing(ctx, position, direction + QUARTER_TURN, mouth_open);
+}
+
+void packman_draw_pacman_facing(GContext *ctx, GPoint position, int32_t mouth_direction,
+                                bool mouth_open) {
   graphics_context_set_fill_color(ctx, GColorYellow);
   graphics_fill_circle(ctx, position, PACKMAN_RADIUS);
   if (!mouth_open) return;
   int32_t mouth = TRIG_MAX_ANGLE / 12;
   int mouth_radius = PACKMAN_RADIUS + 2;
-  int32_t mouth_direction = direction + QUARTER_TURN;
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_radial(ctx, GRect(position.x - mouth_radius, position.y - mouth_radius,
                                   mouth_radius * 2, mouth_radius * 2),
@@ -157,6 +161,8 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   packman_draw_chalk(layer, ctx, clock_time, pacman_time_minutes, mouth_open);
 #elif defined(PBL_PLATFORM_GABBRO)
   packman_draw_gabbro(layer, ctx, clock_time, pacman_time_minutes, mouth_open);
+#elif defined(PBL_PLATFORM_EMERY)
+  packman_draw_rectangular(layer, ctx, clock_time, pacman_time_minutes, mouth_open);
 #else
   packman_draw_rectangular(layer, ctx, clock_time, pacman_time_minutes, mouth_open);
 #endif
