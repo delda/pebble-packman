@@ -65,7 +65,8 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   int current_time_minutes = clock_time_in_minutes(clock_time);
   GFont fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 #if defined(PBL_PLATFORM_EMERY)
-  hands_radius = clock_radius * 2;
+  // Keep the minute hand inside the white playfield, clear of Pac-Man's black track.
+  hands_radius = game_playfield.size.w / 2 - 4;
   fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
 #endif
 
