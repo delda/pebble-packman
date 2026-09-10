@@ -12,10 +12,10 @@ pebble install --phone <ip>           # install to a paired phone
 
 ## Target platforms
 
-`targetPlatforms` in `package.json` controls which watches you build for. The
-modern Pebble hardware is **emery** (Pebble Time 2), **gabbro** (Pebble Round
-2), and **flint** (Pebble 2 Duo); the original Pebble platforms (aplite,
-basalt, chalk, diorite) are included by default for backwards compatibility.
+`targetPlatforms` in `package.json` controls which watches you build for. This
+project includes **diorite** (Pebble Steel) alongside chalk, emery, flint, and
+gabbro. Diorite uses the rectangular layout and its monochrome display maps
+the artwork to black and white.
 
 ## Project layout
 

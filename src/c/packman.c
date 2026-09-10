@@ -144,13 +144,20 @@ void packman_draw_clock_hands(GContext *ctx, GPoint center, int radius,
   int hour_minutes = (clock_time->hour % 12) * MINUTES_PER_HOUR + minute;
   int32_t hour_angle = TRIG_MAX_ANGLE * hour_minutes / (12 * MINUTES_PER_HOUR) - QUARTER_TURN;
   int32_t minute_angle = TRIG_MAX_ANGLE * minute / MINUTES_PER_HOUR - QUARTER_TURN;
-  draw_tapered_hand(ctx, center, hour_angle, radius * 2 / 3, 3, 14, 4, GColorBlack);
+  int hour_length = radius * 2 / 3;
+  int minute_length = radius - 1;
+#if defined(PBL_PLATFORM_DIORITE)
+  // Make both hands more prominent while preserving a gap to the playfield edge.
+  hour_length = radius * 3 / 4;
+  minute_length = radius + 1;
+#endif
+  draw_tapered_hand(ctx, center, hour_angle, hour_length, 3, 14, 4, GColorBlack);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, center, 10);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, 8);
-  draw_tapered_hand(ctx, center, minute_angle, radius - 1, 3, 16, 8, GColorWhite);
-  draw_tapered_hand(ctx, center, minute_angle, radius - 1, 2, 12, 3, GColorBlack);
+  draw_tapered_hand(ctx, center, minute_angle, minute_length, 3, 16, 8, GColorWhite);
+  draw_tapered_hand(ctx, center, minute_angle, minute_length, 2, 12, 3, GColorBlack);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, center, 6);
 }

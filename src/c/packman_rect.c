@@ -68,6 +68,9 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   // Keep the minute hand inside the white playfield, clear of Pac-Man's black track.
   hands_radius = game_playfield.size.w / 2 - 4;
   fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
+#elif defined(PBL_PLATFORM_DIORITE)
+  // The monochrome 144x168 display leaves enough room for a more legible dial.
+  hands_radius = game_playfield.size.w / 2 - 4;
 #endif
 
   packman_initialize_decorations(current_time_minutes);

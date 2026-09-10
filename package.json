@@ -12,6 +12,7 @@
     "enableMultiJS": true,
     "targetPlatforms": [
       "chalk",
+      "diorite",
       "emery",
       "flint",
       "gabbro"
