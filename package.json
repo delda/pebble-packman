@@ -23,7 +23,14 @@
       "dummy"
     ],
     "resources": {
-      "media": []
+      "media": [
+        {
+          "type": "png",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/pacman-25.png",
+          "menuIcon": true
+        }
+      ]
     }
   }
 }
