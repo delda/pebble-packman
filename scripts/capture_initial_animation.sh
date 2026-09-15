@@ -1,32 +1,29 @@
 #!/usr/bin/env bash
 
 # Build Packman, run it in a Pebble emulator, and capture its start-up
-# animation as an endlessly looping GIF. Pass a platform name to override the
-# default, for example: scripts/capture_initial_animation.sh flint
+# animation as an MP4 video and an endlessly looping GIF. Pass a platform name
+# to override the default, for example: scripts/capture_initial_animation.sh flint
 set -euo pipefail
 
 readonly PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly DEFAULT_PLATFORM="gabbro"
 readonly ANIMATION_TIME="23:59"
-readonly CAPTURE_DURATION_SECONDS=5
+readonly CAPTURE_DURATION_SECONDS=3
 readonly CAPTURE_FPS=20
 readonly FRAME_COUNT=$((CAPTURE_DURATION_SECONDS * CAPTURE_FPS))
 readonly FRAME_INTERVAL_SECONDS="0.05"
-# The emulator's default backlight timeout is shorter than the capture. Refresh
-# it before it expires, without changing the watchface's real-device behavior.
-readonly BACKLIGHT_REFRESH_SECONDS=2
-readonly BACKLIGHT_REFRESH_FRAME_COUNT=$((BACKLIGHT_REFRESH_SECONDS * CAPTURE_FPS))
 
 emulator_logs_pid=""
 emulator_logs_file=""
 
 if ! command -v ffmpeg >/dev/null 2>&1; then
-  echo "ffmpeg is required to create the GIF." >&2
+  echo "ffmpeg is required to create the video and GIF." >&2
   exit 1
 fi
 
 readonly PLATFORM="${1:-$DEFAULT_PLATFORM}"
 readonly OUTPUT_DIR="$PROJECT_DIR/resources/images/screenshots/$PLATFORM/initial-animation"
+readonly OUTPUT_VIDEO="$OUTPUT_DIR/initial-animation.mp4"
 readonly OUTPUT_GIF="$OUTPUT_DIR/initial-animation.gif"
 
 stop_emulator() {
@@ -69,6 +66,15 @@ start_emulator() {
   return 1
 }
 
+set_animation_time() {
+  # Every --emulator connection synchronises QEMU to the host clock. Set the
+  # intended time immediately afterwards so the capture starts at 23:59.
+  pebble emu-set-time --emulator "$PLATFORM" "${ANIMATION_TIME}:00"
+  # Give the emulator time to apply the packet before another connection can
+  # synchronise it again or a frame is captured.
+  sleep 1
+}
+
 capture_animation() {
   local frame frame_path monitor_port
 
@@ -84,13 +90,6 @@ print(state[sys.argv[1]][next(iter(state[sys.argv[1]]))]["qemu"]["monitor"])
 ' "$PLATFORM")"
 
   for ((frame = 1; frame <= FRAME_COUNT; frame++)); do
-    # A button click wakes the emulator for its configured timeout (about three
-    # seconds by default). Refresh every two seconds so every captured frame is
-    # backlit, including when CAPTURE_DURATION_SECONDS is increased.
-    if ((frame > 1 && (frame - 1) % BACKLIGHT_REFRESH_FRAME_COUNT == 0)); then
-      pebble emu-button --emulator "$PLATFORM" click back
-    fi
-
     printf -v frame_path '%s/frame-%05d.ppm' "$OUTPUT_DIR" "$frame"
     printf 'screendump %s\n' "$frame_path" | nc -N 127.0.0.1 "$monitor_port" >/dev/null
     test -s "$frame_path"
@@ -121,28 +120,33 @@ export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-dummy}"
 bash -lic 'nvm use v24.14.0 && pebble build'
 
 mkdir -p "$OUTPUT_DIR"
-rm -f "$OUTPUT_DIR"/frame-*.png "$OUTPUT_DIR"/frame-*.ppm "$OUTPUT_GIF"
+rm -f "$OUTPUT_DIR"/frame-*.png "$OUTPUT_DIR"/frame-*.ppm "$OUTPUT_VIDEO" "$OUTPUT_GIF"
 
 start_emulator
 
-# Commands using --emulator synchronise the emulator to the host's current
-# time when they connect. Set ANIMATION_TIME first, then install through the
-# pypkjs proxy so the installation does not overwrite it.
+# Wake the screen before setting the time. This connection synchronises QEMU to
+# the host clock, so it must happen before set_animation_time.
+pebble emu-button --emulator "$PLATFORM" click back
+
+# Install through the pypkjs proxy so it does not itself open an emulator
+# connection and overwrite the chosen animation time.
 readonly PYPKJS_PORT="$(emulator_pypkjs_port)"
 readonly PYPKJS_ADDRESS="localhost:$PYPKJS_PORT"
-pebble emu-set-time --emulator "$PLATFORM" "${ANIMATION_TIME}:00"
+set_animation_time
 pebble install --phone "$PYPKJS_ADDRESS" build/pebble-packman.pbw
-
-# Wake the emulator like a real watch button press. `emu-button` only sends
-# button input, so it preserves the time set immediately above.
-pebble emu-button --emulator "$PLATFORM" click back
+# Let the watchface draw its first frame; this is one GIF frame, not an
+# animation delay.
 sleep "$FRAME_INTERVAL_SECONDS"
 
 capture_animation
+
+ffmpeg -y -loglevel error -framerate "$CAPTURE_FPS" \
+  -i "$OUTPUT_DIR/frame-%05d.ppm" \
+  -c:v libx264 -pix_fmt yuv420p -movflags +faststart "$OUTPUT_VIDEO"
 
 ffmpeg -y -loglevel error -framerate "$CAPTURE_FPS" \
   -pattern_type glob -i "$OUTPUT_DIR/frame-*.ppm" \
   -filter_complex '[0:v]split[frames][palette];[palette]palettegen[colors];[frames][colors]paletteuse' \
   -loop 0 "$OUTPUT_GIF"
 
-echo "Created $OUTPUT_GIF"
+echo "Created $OUTPUT_VIDEO and $OUTPUT_GIF"

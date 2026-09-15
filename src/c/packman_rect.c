@@ -68,8 +68,8 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   // Keep the minute hand inside the white playfield, clear of Pac-Man's black track.
   hands_radius = game_playfield.size.w / 2 - 4;
   fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
-#elif defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE)
-  // Basalt shares Diorite's 144x168 layout; Basalt retains the native color palette.
+#elif defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE)
+  // Aplite and Basalt share Diorite's 144x168 layout; color-capable Basalt keeps its palette.
   hands_radius = game_playfield.size.w / 2 - 4;
 #endif
 
