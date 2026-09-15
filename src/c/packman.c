@@ -146,8 +146,8 @@ void packman_draw_clock_hands(GContext *ctx, GPoint center, int radius,
   int32_t minute_angle = TRIG_MAX_ANGLE * minute / MINUTES_PER_HOUR - QUARTER_TURN;
   int hour_length = radius * 2 / 3;
   int minute_length = radius - 1;
-#if defined(PBL_PLATFORM_DIORITE)
-  // Make both hands more prominent while preserving a gap to the playfield edge.
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE)
+  // Basalt shares Diorite's 144x168 geometry, so use its more prominent dial.
   hour_length = radius * 3 / 4;
   minute_length = radius + 1;
 #endif

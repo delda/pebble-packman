@@ -13,9 +13,9 @@ pebble install --phone <ip>           # install to a paired phone
 ## Target platforms
 
 `targetPlatforms` in `package.json` controls which watches you build for. This
-project includes **diorite** (Pebble Steel) alongside chalk, emery, flint, and
-gabbro. Diorite uses the rectangular layout and its monochrome display maps
-the artwork to black and white.
+project includes **basalt** (Pebble Time) alongside chalk, diorite, emery,
+flint, and gabbro. Basalt uses Diorite's 144×168 rectangular layout and its
+own color display renders the same palette used by Emery.
 
 ## Project layout
 

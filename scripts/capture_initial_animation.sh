@@ -12,6 +12,10 @@ readonly CAPTURE_DURATION_SECONDS=5
 readonly CAPTURE_FPS=20
 readonly FRAME_COUNT=$((CAPTURE_DURATION_SECONDS * CAPTURE_FPS))
 readonly FRAME_INTERVAL_SECONDS="0.05"
+# The emulator's default backlight timeout is shorter than the capture. Refresh
+# it before it expires, without changing the watchface's real-device behavior.
+readonly BACKLIGHT_REFRESH_SECONDS=2
+readonly BACKLIGHT_REFRESH_FRAME_COUNT=$((BACKLIGHT_REFRESH_SECONDS * CAPTURE_FPS))
 
 emulator_logs_pid=""
 emulator_logs_file=""
@@ -80,6 +84,13 @@ print(state[sys.argv[1]][next(iter(state[sys.argv[1]]))]["qemu"]["monitor"])
 ' "$PLATFORM")"
 
   for ((frame = 1; frame <= FRAME_COUNT; frame++)); do
+    # A button click wakes the emulator for its configured timeout (about three
+    # seconds by default). Refresh every two seconds so every captured frame is
+    # backlit, including when CAPTURE_DURATION_SECONDS is increased.
+    if ((frame > 1 && (frame - 1) % BACKLIGHT_REFRESH_FRAME_COUNT == 0)); then
+      pebble emu-button --emulator "$PLATFORM" click back
+    fi
+
     printf -v frame_path '%s/frame-%05d.ppm' "$OUTPUT_DIR" "$frame"
     printf 'screendump %s\n' "$frame_path" | nc -N 127.0.0.1 "$monitor_port" >/dev/null
     test -s "$frame_path"
@@ -121,6 +132,10 @@ readonly PYPKJS_PORT="$(emulator_pypkjs_port)"
 readonly PYPKJS_ADDRESS="localhost:$PYPKJS_PORT"
 pebble emu-set-time --emulator "$PLATFORM" "${ANIMATION_TIME}:00"
 pebble install --phone "$PYPKJS_ADDRESS" build/pebble-packman.pbw
+
+# Wake the emulator like a real watch button press. `emu-button` only sends
+# button input, so it preserves the time set immediately above.
+pebble emu-button --emulator "$PLATFORM" click back
 sleep "$FRAME_INTERVAL_SECONDS"
 
 capture_animation
