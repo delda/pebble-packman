@@ -15,9 +15,13 @@ static int s_animation_duration_ms;
 #define ANIMATION_FRAME_MS 33
 #define MOUTH_ANIMATION_FRAME_MS 120
 
-#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
 #define PBL_BLUETOOTH_INDICATOR_SUPPORTED
+#if defined(PBL_PLATFORM_EMERY)
+#define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-47, -65)
+#else
 #define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-30, -30)
+#endif
 
 #if defined(PBL_PLATFORM_CHALK)
 static const BluetoothConfiguration s_bluetooth_configuration = {
