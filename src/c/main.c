@@ -1,5 +1,6 @@
 #include <pebble.h>
 
+#include "bluetooth.h"
 #include "clock.h"
 #include "packman.h"
 
@@ -30,6 +31,9 @@ static bool animation_mouth_open(void) {
 
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
+#if defined(PBL_PLATFORM_GABBRO)
+  bluetooth_draw(layer, ctx, GPoint(-44, -44));
+#endif
 }
 
 static void animation_timer_handler(void *context) {
@@ -65,6 +69,9 @@ static void window_load(Window *window) {
   s_face_layer = layer_create(layer_get_bounds(root));
   layer_set_update_proc(s_face_layer, face_layer_update);
   layer_add_child(root, s_face_layer);
+#if defined(PBL_PLATFORM_GABBRO)
+  bluetooth_initialize(s_face_layer);
+#endif
   start_animation();
 }
 
@@ -82,9 +89,9 @@ static void init(void) {
   struct tm *time_info = localtime(&now);
   clock_time_set(&s_clock_time, time_info->tm_hour, time_info->tm_min);
 
-#ifndef RELEASE
-  // `pebble build --debug` omits RELEASE, enabling the backlight for debugging.
-  light_enable_interaction();
+#ifdef PBL_DEBUG
+  // Keep the backlight on while debugging; release builds use automatic control.
+  light_enable(true);
 #endif
 
   s_window = window_create();
@@ -100,6 +107,12 @@ static void init(void) {
 
 static void deinit(void) {
   tick_timer_service_unsubscribe();
+#if defined(PBL_PLATFORM_GABBRO)
+  bluetooth_deinitialize();
+#endif
+#ifdef PBL_DEBUG
+  light_enable(false);
+#endif
   window_destroy(s_window);
 }
 

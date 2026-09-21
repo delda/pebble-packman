@@ -1,0 +1,6 @@
+{
+  "showBluetoothIcon": {
+    "label": "Show Bluetooth icon",
+    "default": true
+  }
+}

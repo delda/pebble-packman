@@ -22,8 +22,10 @@
     "watchapp": {
       "watchface": true
     },
+    "capabilities": ["configurable"],
     "messageKeys": [
-      "dummy"
+      "dummy",
+      "ShowBluetoothIcon"
     ],
     "resources": {
       "media": [
@@ -32,6 +34,16 @@
           "name": "IMAGE_MENU_ICON",
           "file": "images/pacman-25.png",
           "menuIcon": true
+        },
+        {
+          "type": "png",
+          "name": "IMAGE_BLUETOOTH_CONNECTED",
+          "file": "images/bluetooth-connected.png"
+        },
+        {
+          "type": "png",
+          "name": "IMAGE_BLUETOOTH_DISCONNECTED",
+          "file": "images/bluetooth-disconnected.png"
         }
       ]
     }
