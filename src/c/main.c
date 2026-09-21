@@ -15,7 +15,6 @@ static int s_animation_duration_ms;
 #define ANIMATION_FRAME_MS 33
 #define MOUTH_ANIMATION_FRAME_MS 120
 
-#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE)
 #define PBL_BLUETOOTH_INDICATOR_SUPPORTED
 #if defined(PBL_PLATFORM_EMERY)
 #define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-47, -65)
@@ -35,7 +34,6 @@ static const BluetoothConfiguration s_bluetooth_configuration = {
   .disconnected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED,
   .icon_size = GSize(14, 23),
 };
-#endif
 #endif
 
 static int animation_time_minutes(void) {
