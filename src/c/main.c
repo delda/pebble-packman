@@ -82,6 +82,11 @@ static void init(void) {
   struct tm *time_info = localtime(&now);
   clock_time_set(&s_clock_time, time_info->tm_hour, time_info->tm_min);
 
+#ifndef RELEASE
+  // `pebble build --debug` omits RELEASE, enabling the backlight for debugging.
+  light_enable_interaction();
+#endif
+
   s_window = window_create();
   window_set_background_color(s_window, GColorWhite);
   window_set_window_handlers(s_window, (WindowHandlers) {
