@@ -44,6 +44,16 @@
           "type": "png",
           "name": "IMAGE_BLUETOOTH_DISCONNECTED",
           "file": "images/bluetooth-disconnected.png"
+        },
+        {
+          "type": "png",
+          "name": "IMAGE_BLUETOOTH_CONNECTED_SMALL",
+          "file": "images/bluetooth-connected-10x16.png"
+        },
+        {
+          "type": "png",
+          "name": "IMAGE_BLUETOOTH_DISCONNECTED_SMALL",
+          "file": "images/bluetooth-disconnected-10x16.png"
         }
       ]
     }

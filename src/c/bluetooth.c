@@ -3,12 +3,11 @@
 #include "bluetooth.h"
 
 #define PERSIST_KEY_SHOW_BLUETOOTH_ICON 1
-#define BLUETOOTH_ICON_WIDTH 14
-#define BLUETOOTH_ICON_HEIGHT 23
 
 static Layer *s_face_layer;
 static GBitmap *s_connected_bitmap;
 static GBitmap *s_disconnected_bitmap;
+static GSize s_icon_size;
 static bool s_show_icon;
 static bool s_connected;
 
@@ -34,12 +33,12 @@ static void inbox_received_handler(DictionaryIterator *iterator, void *context) 
   mark_face_dirty();
 }
 
-void bluetooth_initialize(Layer *face_layer) {
+void bluetooth_initialize(Layer *face_layer, const BluetoothConfiguration *configuration) {
   s_face_layer = face_layer;
-  s_connected_bitmap =
-      gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED);
+  s_connected_bitmap = gbitmap_create_with_resource(configuration->connected_resource_id);
   s_disconnected_bitmap =
-      gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED);
+      gbitmap_create_with_resource(configuration->disconnected_resource_id);
+  s_icon_size = configuration->icon_size;
   s_show_icon = persist_exists(PERSIST_KEY_SHOW_BLUETOOTH_ICON)
                     ? persist_read_bool(PERSIST_KEY_SHOW_BLUETOOTH_ICON)
                     : true;
@@ -73,8 +72,8 @@ void bluetooth_draw(Layer *layer, GContext *ctx, GPoint center_offset) {
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(
       ctx, bitmap,
-      GRect(center.x - BLUETOOTH_ICON_WIDTH / 2,
-            center.y - BLUETOOTH_ICON_HEIGHT / 2,
-            BLUETOOTH_ICON_WIDTH, BLUETOOTH_ICON_HEIGHT));
+      GRect(center.x - s_icon_size.w / 2,
+            center.y - s_icon_size.h / 2,
+            s_icon_size.w, s_icon_size.h));
   graphics_context_set_compositing_mode(ctx, GCompOpAssign);
 }

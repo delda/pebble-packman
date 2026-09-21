@@ -15,6 +15,25 @@ static int s_animation_duration_ms;
 #define ANIMATION_FRAME_MS 33
 #define MOUTH_ANIMATION_FRAME_MS 120
 
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK)
+#define PBL_BLUETOOTH_INDICATOR_SUPPORTED
+#define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-30, -30)
+
+#if defined(PBL_PLATFORM_CHALK)
+static const BluetoothConfiguration s_bluetooth_configuration = {
+  .connected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED_SMALL,
+  .disconnected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED_SMALL,
+  .icon_size = GSize(10, 16),
+};
+#else
+static const BluetoothConfiguration s_bluetooth_configuration = {
+  .connected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED,
+  .disconnected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED,
+  .icon_size = GSize(14, 23),
+};
+#endif
+#endif
+
 static int animation_time_minutes(void) {
   int current_time_minutes = clock_time_in_minutes(&s_clock_time);
   int animated_time_minutes =
@@ -31,8 +50,9 @@ static bool animation_mouth_open(void) {
 
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
-#if defined(PBL_PLATFORM_GABBRO)
-  bluetooth_draw(layer, ctx, GPoint(-44, -44));
+#if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
+  // Keep the icon within the upper-left area of the inner white clock face.
+  bluetooth_draw(layer, ctx, BLUETOOTH_ICON_CENTER_OFFSET);
 #endif
 }
 
@@ -69,8 +89,8 @@ static void window_load(Window *window) {
   s_face_layer = layer_create(layer_get_bounds(root));
   layer_set_update_proc(s_face_layer, face_layer_update);
   layer_add_child(root, s_face_layer);
-#if defined(PBL_PLATFORM_GABBRO)
-  bluetooth_initialize(s_face_layer);
+#if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
+  bluetooth_initialize(s_face_layer, &s_bluetooth_configuration);
 #endif
   start_animation();
 }
@@ -107,7 +127,7 @@ static void init(void) {
 
 static void deinit(void) {
   tick_timer_service_unsubscribe();
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   bluetooth_deinitialize();
 #endif
 #ifdef PBL_DEBUG
