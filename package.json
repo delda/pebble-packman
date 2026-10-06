@@ -25,7 +25,8 @@
     "capabilities": ["configurable"],
     "messageKeys": [
       "dummy",
-      "ShowBluetoothIcon"
+      "ShowBluetoothIcon",
+      "BatteryMode"
     ],
     "resources": {
       "media": [

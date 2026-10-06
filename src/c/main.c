@@ -1,7 +1,9 @@
 #include <pebble.h>
 
+#include "battery.h"
 #include "bluetooth.h"
 #include "clock.h"
+#include "layout.h"
 #include "packman.h"
 
 static Window *s_window;
@@ -52,10 +54,25 @@ static bool animation_mouth_open(void) {
 
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
+#if defined(PBL_PLATFORM_GABBRO)
+  bool bluetooth_visible = bluetooth_is_visible();
+  int layout_element_count = bluetooth_visible ? 2 : 1;
+#endif
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   // Keep the icon within the upper-left area of the inner white clock face.
+#if defined(PBL_PLATFORM_GABBRO)
+  if (bluetooth_visible) {
+    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count, 0));
+  }
+#else
   bluetooth_draw(layer, ctx, BLUETOOTH_ICON_CENTER_OFFSET);
 #endif
+#endif
+#if defined(PBL_PLATFORM_GABBRO)
+  battery_draw(ctx, layout_get_point(layer, layout_element_count,
+                                     bluetooth_visible ? 1 : 0));
+#endif
+  packman_draw_hands_on_top(layer, ctx, &s_clock_time);
 }
 
 static void animation_timer_handler(void *context) {
@@ -94,6 +111,9 @@ static void window_load(Window *window) {
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   bluetooth_initialize(s_face_layer, &s_bluetooth_configuration);
 #endif
+#if defined(PBL_PLATFORM_GABBRO)
+  battery_initialize(s_face_layer);
+#endif
   start_animation();
 }
 
@@ -131,6 +151,9 @@ static void deinit(void) {
   tick_timer_service_unsubscribe();
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   bluetooth_deinitialize();
+#endif
+#if defined(PBL_PLATFORM_GABBRO)
+  battery_deinitialize();
 #endif
 #ifdef PBL_DEBUG
   light_enable(false);

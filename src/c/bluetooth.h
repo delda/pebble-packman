@@ -16,3 +16,5 @@ void bluetooth_deinitialize(void);
 // Draws the indicator at an offset from the center of `layer`.  Each watch
 // model can choose the offset that fits its own layout.
 void bluetooth_draw(Layer *layer, GContext *ctx, GPoint center_offset);
+void bluetooth_draw_at(GContext *ctx, GPoint center);
+bool bluetooth_is_visible(void);

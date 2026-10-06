@@ -1,5 +1,6 @@
 #include <pebble.h>
 
+#include "battery.h"
 #include "bluetooth.h"
 
 #define PERSIST_KEY_SHOW_BLUETOOTH_ICON 1
@@ -24,13 +25,13 @@ static void connection_handler(bool connected) {
 
 static void inbox_received_handler(DictionaryIterator *iterator, void *context) {
   Tuple *show_bluetooth_icon = dict_find(iterator, MESSAGE_KEY_ShowBluetoothIcon);
-  if (!show_bluetooth_icon) {
-    return;
+  Tuple *battery_mode = dict_find(iterator, MESSAGE_KEY_BatteryMode);
+  if (show_bluetooth_icon) {
+    s_show_icon = show_bluetooth_icon->value->int32 != 0;
+    persist_write_bool(PERSIST_KEY_SHOW_BLUETOOTH_ICON, s_show_icon);
+    mark_face_dirty();
   }
-
-  s_show_icon = show_bluetooth_icon->value->int32 != 0;
-  persist_write_bool(PERSIST_KEY_SHOW_BLUETOOTH_ICON, s_show_icon);
-  mark_face_dirty();
+  if (battery_mode) battery_set_mode(battery_mode->value->int32);
 }
 
 void bluetooth_initialize(Layer *face_layer, const BluetoothConfiguration *configuration) {
@@ -68,6 +69,14 @@ void bluetooth_draw(Layer *layer, GContext *ctx, GPoint center_offset) {
   GRect bounds = layer_get_bounds(layer);
   GPoint center = GPoint(bounds.size.w / 2 + center_offset.x,
                          bounds.size.h / 2 + center_offset.y);
+  bluetooth_draw_at(ctx, center);
+}
+
+void bluetooth_draw_at(GContext *ctx, GPoint center) {
+  if (!s_show_icon) {
+    return;
+  }
+
   GBitmap *bitmap = s_connected ? s_connected_bitmap : s_disconnected_bitmap;
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
   graphics_draw_bitmap_in_rect(
@@ -76,4 +85,8 @@ void bluetooth_draw(Layer *layer, GContext *ctx, GPoint center_offset) {
             center.y - s_icon_size.h / 2,
             s_icon_size.w, s_icon_size.h));
   graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+}
+
+bool bluetooth_is_visible(void) {
+  return s_show_icon;
 }

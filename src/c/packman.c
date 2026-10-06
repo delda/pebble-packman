@@ -174,3 +174,16 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
   packman_draw_rectangular(layer, ctx, clock_time, pacman_time_minutes, mouth_open);
 #endif
 }
+
+void packman_draw_hands_on_top(Layer *layer, GContext *ctx, const ClockTime *clock_time) {
+#if defined(PBL_PLATFORM_GABBRO)
+  GRect bounds = layer_get_bounds(layer);
+  int smaller_side = bounds.size.w < bounds.size.h ? bounds.size.w : bounds.size.h;
+  GPoint center = GPoint(bounds.size.w / 2, bounds.size.h / 2);
+  packman_draw_clock_hands(ctx, center, smaller_side / 3, clock_time);
+#else
+  (void)layer;
+  (void)ctx;
+  (void)clock_time;
+#endif
+}

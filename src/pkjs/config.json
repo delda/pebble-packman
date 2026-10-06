@@ -2,5 +2,13 @@
   "showBluetoothIcon": {
     "label": "Show Bluetooth icon",
     "default": true
+  },
+  "batteryMode": {
+    "label": "Battery display",
+    "default": "0",
+    "options": [
+      {"label": "Visual", "value": "0"},
+      {"label": "Percentage", "value": "1"}
+    ]
   }
 }
