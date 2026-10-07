@@ -35,7 +35,7 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
                   (TRIG_MAX_ANGLE * point_index / LAYOUT_POINT_COUNT);
   GPoint result = GPoint(center.x + cos_lookup(angle) * radius / TRIG_MAX_RATIO,
                          center.y + sin_lookup(angle) * radius / TRIG_MAX_RATIO);
-#if defined(PBL_PLATFORM_EMERY)
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
   if (point == LAYOUT_POINT_3 || point == LAYOUT_POINT_4) {
     result.y -= 10;
   }
