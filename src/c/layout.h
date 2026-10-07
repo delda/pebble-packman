@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 
-// Five equally spaced indicator points around the Gabbro layout.
+// Five equally spaced indicator points around the watch face.
 // Numbering starts at the bottom and continues clockwise.
 typedef enum {
   LAYOUT_POINT_1 = 1, // bottom

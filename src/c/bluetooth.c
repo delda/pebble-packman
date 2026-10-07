@@ -26,12 +26,17 @@ static void connection_handler(bool connected) {
 static void inbox_received_handler(DictionaryIterator *iterator, void *context) {
   Tuple *show_bluetooth_icon = dict_find(iterator, MESSAGE_KEY_ShowBluetoothIcon);
   Tuple *battery_mode = dict_find(iterator, MESSAGE_KEY_BatteryMode);
+  Tuple *bluetooth_connected = dict_find(iterator, MESSAGE_KEY_BluetoothConnected);
   if (show_bluetooth_icon) {
     s_show_icon = show_bluetooth_icon->value->int32 != 0;
     persist_write_bool(PERSIST_KEY_SHOW_BLUETOOTH_ICON, s_show_icon);
     mark_face_dirty();
   }
   if (battery_mode) battery_set_mode(battery_mode->value->int32);
+  if (bluetooth_connected) {
+    s_connected = bluetooth_connected->value->int32 != 0;
+    mark_face_dirty();
+  }
 }
 
 void bluetooth_initialize(Layer *face_layer, const BluetoothConfiguration *configuration) {

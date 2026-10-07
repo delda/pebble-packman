@@ -33,6 +33,12 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
   // 90 degrees is below the center; each point advances by one fifth of a turn.
   int32_t angle = LAYOUT_START_ANGLE +
                   (TRIG_MAX_ANGLE * point_index / LAYOUT_POINT_COUNT);
-  return GPoint(center.x + cos_lookup(angle) * radius / TRIG_MAX_RATIO,
-                center.y + sin_lookup(angle) * radius / TRIG_MAX_RATIO);
+  GPoint result = GPoint(center.x + cos_lookup(angle) * radius / TRIG_MAX_RATIO,
+                         center.y + sin_lookup(angle) * radius / TRIG_MAX_RATIO);
+#if defined(PBL_PLATFORM_EMERY)
+  if (point == LAYOUT_POINT_3 || point == LAYOUT_POINT_4) {
+    result.y -= 10;
+  }
+#endif
+  return result;
 }

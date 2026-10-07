@@ -26,7 +26,8 @@
     "messageKeys": [
       "dummy",
       "ShowBluetoothIcon",
-      "BatteryMode"
+      "BatteryMode",
+      "BluetoothConnected"
     ],
     "resources": {
       "media": [

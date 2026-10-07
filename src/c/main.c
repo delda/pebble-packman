@@ -18,11 +18,7 @@ static int s_animation_duration_ms;
 #define MOUTH_ANIMATION_FRAME_MS 120
 
 #define PBL_BLUETOOTH_INDICATOR_SUPPORTED
-#if defined(PBL_PLATFORM_EMERY)
-#define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-47, -65)
-#else
 #define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-30, -30)
-#endif
 
 #if defined(PBL_PLATFORM_CHALK)
 static const BluetoothConfiguration s_bluetooth_configuration = {
@@ -54,23 +50,29 @@ static bool animation_mouth_open(void) {
 
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
   bool bluetooth_visible = bluetooth_is_visible();
-  int layout_element_count = bluetooth_visible ? 2 : 1;
+  bool battery_visible = battery_is_visible();
+  int layout_element_count = (bluetooth_visible ? 1 : 0) +
+                             (battery_visible ? 1 : 0);
+  int layout_element_index = 0;
 #endif
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   // Keep the icon within the upper-left area of the inner white clock face.
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
   if (bluetooth_visible) {
-    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count, 0));
+    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count,
+                                             layout_element_index++));
   }
 #else
   bluetooth_draw(layer, ctx, BLUETOOTH_ICON_CENTER_OFFSET);
 #endif
 #endif
-#if defined(PBL_PLATFORM_GABBRO)
-  battery_draw(ctx, layout_get_point(layer, layout_element_count,
-                                     bluetooth_visible ? 1 : 0));
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
+  if (battery_visible) {
+    battery_draw(ctx, layout_get_point(layer, layout_element_count,
+                                       layout_element_index++));
+  }
 #endif
   packman_draw_hands_on_top(layer, ctx, &s_clock_time);
 }
@@ -111,7 +113,7 @@ static void window_load(Window *window) {
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   bluetooth_initialize(s_face_layer, &s_bluetooth_configuration);
 #endif
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
   battery_initialize(s_face_layer);
 #endif
   start_animation();
@@ -152,7 +154,7 @@ static void deinit(void) {
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   bluetooth_deinitialize();
 #endif
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_EMERY)
   battery_deinitialize();
 #endif
 #ifdef PBL_DEBUG
