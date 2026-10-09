@@ -21,7 +21,8 @@ static int s_animation_duration_ms;
 #define BLUETOOTH_ICON_CENTER_OFFSET GPoint(-30, -30)
 
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_APLITE) || \
-    defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE)
+    defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
 static const BluetoothConfiguration s_bluetooth_configuration = {
   .connected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_CONNECTED_SMALL,
   .disconnected_resource_id = RESOURCE_ID_IMAGE_BLUETOOTH_DISCONNECTED_SMALL,
@@ -52,7 +53,8 @@ static bool animation_mouth_open(void) {
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
   bool bluetooth_visible = bluetooth_is_visible();
   bool battery_visible = battery_is_visible();
   int layout_element_count = (bluetooth_visible ? 1 : 0) +
@@ -62,7 +64,8 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   // Keep the icon within the upper-left area of the inner white clock face.
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
   if (bluetooth_visible) {
     bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count,
                                              layout_element_index++));
@@ -72,7 +75,8 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
 #endif
 #endif
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
   if (battery_visible) {
     battery_draw(ctx, layout_get_point(layer, layout_element_count,
                                        layout_element_index++));
@@ -118,7 +122,8 @@ static void window_load(Window *window) {
   bluetooth_initialize(s_face_layer, &s_bluetooth_configuration);
 #endif
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
   battery_initialize(s_face_layer);
 #endif
   start_animation();
@@ -160,7 +165,8 @@ static void deinit(void) {
   bluetooth_deinitialize();
 #endif
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
   battery_deinitialize();
 #endif
 #ifdef PBL_DEBUG

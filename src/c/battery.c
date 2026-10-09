@@ -3,7 +3,8 @@
 #include "battery.h"
 
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT)
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT)
 
 #define PERSIST_KEY_BATTERY_MODE 2
 #define BATTERY_MODE_VISUAL 0
@@ -63,13 +64,13 @@ void battery_draw(GContext *ctx, GPoint center) {
   // Same proportions as pebble-BinaryWatchFace; the center comes from layout.c.
   // Nine 1px bars with 1px spacing need 17px of inner width; leave one
   // additional pixel for the outline so the last bar stays inside the body.
-#if defined(PBL_PLATFORM_BASALT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
   // Basalt uses a compact body: after the ninth 1px bar, leave one white pixel.
   const int width = 21;
 #else
   const int width = BATTERY_WIDTH;
 #endif
-#if defined(PBL_PLATFORM_BASALT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
   // Golden-ratio height: 21 / 1.618 ≈ 13 pixels.
   const int height = 13;
 #else
@@ -78,7 +79,7 @@ void battery_draw(GContext *ctx, GPoint center) {
 #endif
   const int x = center.x - width / 2;
   const int y = center.y - height / 2;
-#if defined(PBL_PLATFORM_BASALT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
   const int button_y = y + 3;
   const int button_height = height - 6;
 #else
@@ -94,7 +95,7 @@ void battery_draw(GContext *ctx, GPoint center) {
     char battery_text[5];
     snprintf(battery_text, sizeof(battery_text), "%d%%", s_battery_level);
     graphics_draw_rect(ctx, GRect(x, y, width, height));
-#if defined(PBL_PLATFORM_BASALT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
     graphics_fill_rect(ctx, GRect(x + width, button_y, 2, button_height), 0, GCornerNone);
     graphics_draw_text(ctx, battery_text, fonts_get_system_font(FONT_KEY_GOTHIC_14),
                        GRect(x - 2, y - 3, width + 4, height + 2), GTextOverflowModeFill,
