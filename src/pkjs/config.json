@@ -11,5 +11,9 @@
       {"label": "Visual", "value": "0"},
       {"label": "Percentage", "value": "1"}
     ]
+  },
+  "showWeather": {
+    "label": "Show weather",
+    "default": false
   }
 }

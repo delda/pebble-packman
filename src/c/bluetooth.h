@@ -18,3 +18,4 @@ void bluetooth_deinitialize(void);
 void bluetooth_draw(Layer *layer, GContext *ctx, GPoint center_offset);
 void bluetooth_draw_at(GContext *ctx, GPoint center);
 bool bluetooth_is_visible(void);
+int bluetooth_get_width(void);

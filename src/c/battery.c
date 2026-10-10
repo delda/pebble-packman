@@ -40,6 +40,15 @@ bool battery_is_visible(void) {
   return s_battery_mode != BATTERY_MODE_HIDDEN;
 }
 
+int battery_get_width(void) {
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_DIORITE)
+  return 21;
+#else
+  return BATTERY_WIDTH;
+#endif
+}
+
 void battery_initialize(Layer *face_layer) {
   s_face_layer = face_layer;
   s_battery_mode = persist_exists(PERSIST_KEY_BATTERY_MODE)
@@ -130,5 +139,6 @@ void battery_deinitialize(void) {}
 void battery_draw(GContext *ctx, GPoint center) { (void)ctx; (void)center; }
 void battery_set_mode(int mode) { (void)mode; }
 bool battery_is_visible(void) { return false; }
+int battery_get_width(void) { return 0; }
 
 #endif

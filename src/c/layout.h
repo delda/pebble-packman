@@ -12,6 +12,7 @@ typedef enum {
   LAYOUT_POINT_5 = 5,
 } LayoutPoint;
 
-// Returns the slot for an element in a layout containing element_count items.
-// element_index is the item's zero-based index in the active-element list.
-GPoint layout_get_point(Layer *layer, int element_count, int element_index);
+// Returns the center for an element in a layout containing element_count items.
+// The widths are used to center the complete group, not just its slot centers.
+GPoint layout_get_point(Layer *layer, const int *element_widths,
+                        int element_count, int element_index);

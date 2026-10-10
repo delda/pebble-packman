@@ -2,7 +2,6 @@
 
 # Build Packman, run it in a Pebble emulator, and capture the requested
 # screenshot sequence. The platform is required:
-# scripts/capture_initial_animation.sh gabbro
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
@@ -10,8 +9,8 @@ if [[ $# -ne 1 ]]; then
   exit 2
 fi
 
-readonly PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly PLATFORM="$1"
+readonly PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly SCREENSHOT_TIME="13:25"
 readonly OUTPUT_DIR="$PROJECT_DIR/resources/images/screenshots/$PLATFORM/initial-animation"
 readonly DEBUG_BUNDLE="$PROJECT_DIR/build/pebble-packman_debug.pbw"
@@ -78,11 +77,17 @@ capture_combination() {
   local bluetooth_visible="$2"
   local battery_mode="$3"
   local bluetooth_state="${4:-}"
+  local weather_for_capture="${5:-0}"
   local screenshot_path="$OUTPUT_DIR/${sequence}.png"
 
   # The app configuration controls whether the Bluetooth icon is shown. The
   # emulator Bluetooth connection state is separate and does not hide the icon.
-  local app_message=("10001=$bluetooth_visible" "10002=$battery_mode")
+  local weather_enabled="$weather_for_capture"
+  local app_message=("10001=$bluetooth_visible" "10002=$battery_mode" "10004=$weather_enabled")
+  if [[ "$weather_enabled" -eq 1 ]]; then
+    # Deterministic values for screenshot comparisons: 21 C and clear at +3h.
+    app_message+=("10005=21" "10006=1" "10007=$(date +%s)")
+  fi
   if [[ -n "$bluetooth_state" ]]; then
     app_message+=("10003=$([[ "$bluetooth_state" == yes ]] && echo 1 || echo 0)")
   fi
@@ -140,10 +145,11 @@ pebble install --emulator "$PLATFORM" "$DEBUG_BUNDLE"
 # at startup; the capture loop must apply its requested BatteryMode afterwards.
 sleep 2
 
-capture_combination 01-none 0 2
-capture_combination 01-none 0 2
-#capture_combination 02-bluetooth-active 1 2 yes
-#capture_combination 03-bluetooth-unreachable 1 2 no
-capture_combination 04-battery-visual 0 0
-capture_combination 05-battery-percentage 0 1
-capture_combination 06-bluetooth-active-battery-visual 1 0 yes
+capture_combination 00-none       0 2 no  0
+capture_combination 01-bat-img    0 0 no  0
+capture_combination 02-bat-perc   0 1 no  0
+capture_combination 03-bt-active  1 2 yes 0
+capture_combination 04-bt-off     1 2 no  0
+capture_combination 05-meteo      0 2 no  1
+#capture_combination 05-battery-percentage 0 2 no
+#capture_combination 06-bluetooth-active-battery-visual 1 0 yes

@@ -2,6 +2,7 @@
 
 #include "battery.h"
 #include "bluetooth.h"
+#include "weather.h"
 
 #define PERSIST_KEY_SHOW_BLUETOOTH_ICON 1
 
@@ -27,6 +28,11 @@ static void inbox_received_handler(DictionaryIterator *iterator, void *context) 
   Tuple *show_bluetooth_icon = dict_find(iterator, MESSAGE_KEY_ShowBluetoothIcon);
   Tuple *battery_mode = dict_find(iterator, MESSAGE_KEY_BatteryMode);
   Tuple *bluetooth_connected = dict_find(iterator, MESSAGE_KEY_BluetoothConnected);
+  Tuple *weather_enabled = dict_find(iterator, MESSAGE_KEY_WeatherEnabled);
+  Tuple *weather_temperature = dict_find(iterator, MESSAGE_KEY_WeatherTemperature);
+  Tuple *weather_forecast_icon = dict_find(iterator, MESSAGE_KEY_WeatherForecastIcon);
+  Tuple *weather_updated_at = dict_find(iterator, MESSAGE_KEY_WeatherUpdatedAt);
+  Tuple *weather_request = dict_find(iterator, MESSAGE_KEY_WeatherRequest);
   if (show_bluetooth_icon) {
     s_show_icon = show_bluetooth_icon->value->int32 != 0;
     persist_write_bool(PERSIST_KEY_SHOW_BLUETOOTH_ICON, s_show_icon);
@@ -36,6 +42,11 @@ static void inbox_received_handler(DictionaryIterator *iterator, void *context) 
   if (bluetooth_connected) {
     s_connected = bluetooth_connected->value->int32 != 0;
     mark_face_dirty();
+  }
+  if (weather_enabled || weather_temperature || weather_forecast_icon ||
+      weather_updated_at || weather_request) {
+    weather_received(weather_enabled, weather_temperature, weather_forecast_icon,
+                     weather_updated_at, weather_request);
   }
 }
 
@@ -94,4 +105,8 @@ void bluetooth_draw_at(GContext *ctx, GPoint center) {
 
 bool bluetooth_is_visible(void) {
   return s_show_icon;
+}
+
+int bluetooth_get_width(void) {
+  return s_icon_size.w;
 }

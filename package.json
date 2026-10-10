@@ -27,7 +27,12 @@
       "dummy",
       "ShowBluetoothIcon",
       "BatteryMode",
-      "BluetoothConnected"
+      "BluetoothConnected",
+      "WeatherEnabled",
+      "WeatherTemperature",
+      "WeatherForecastIcon",
+      "WeatherUpdatedAt",
+      "WeatherRequest"
     ],
     "resources": {
       "media": [
