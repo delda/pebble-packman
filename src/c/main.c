@@ -60,15 +60,10 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
   bool bluetooth_visible = bluetooth_is_visible();
   bool battery_visible = battery_is_visible();
   bool weather_visible = weather_is_enabled();
-  int layout_element_widths[3];
   int layout_element_count = (bluetooth_visible ? 1 : 0) +
                              (battery_visible ? 1 : 0) +
                              (weather_visible ? 1 : 0);
   int layout_element_index = 0;
-  int layout_width_index = 0;
-  if (bluetooth_visible) layout_element_widths[layout_width_index++] = bluetooth_get_width();
-  if (battery_visible) layout_element_widths[layout_width_index++] = battery_get_width();
-  if (weather_visible) layout_element_widths[layout_width_index++] = weather_get_width();
 #endif
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   // Keep the icon within the upper-left area of the inner white clock face.
@@ -77,7 +72,7 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
   if (bluetooth_visible) {
-    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_widths, layout_element_count,
+    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count,
                                              layout_element_index++));
   }
 #else
@@ -89,11 +84,11 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
   if (battery_visible) {
-    battery_draw(ctx, layout_get_point(layer, layout_element_widths, layout_element_count,
+    battery_draw(ctx, layout_get_point(layer, layout_element_count,
                                        layout_element_index++));
   }
   if (weather_visible) {
-    weather_draw(ctx, layout_get_point(layer, layout_element_widths, layout_element_count,
+    weather_draw(ctx, layout_get_point(layer, layout_element_count,
                                        layout_element_index++));
   }
 #endif

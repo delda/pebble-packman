@@ -75,8 +75,8 @@ set_screenshot_time() {
 capture_combination() {
   local sequence="$1"
   local bluetooth_visible="$2"
-  local battery_mode="$3"
-  local bluetooth_state="${4:-}"
+  local bluetooth_state="${3:-}"
+  local battery_mode="$4"
   local weather_for_capture="${5:-0}"
   local screenshot_path="$OUTPUT_DIR/${sequence}.png"
 
@@ -144,12 +144,16 @@ pebble install --emulator "$PLATFORM" "$DEBUG_BUNDLE"
 # Wait for PyPKJS's ready event to finish. It sends the persisted settings once
 # at startup; the capture loop must apply its requested BatteryMode afterwards.
 sleep 2
-
-capture_combination 00-none       0 2 no  0
-capture_combination 01-bat-img    0 0 no  0
-capture_combination 02-bat-perc   0 1 no  0
-capture_combination 03-bt-active  1 2 yes 0
-capture_combination 04-bt-off     1 2 no  0
-capture_combination 05-meteo      0 2 no  1
+#
+capture_combination 00-none         0 yes 2 0
+capture_combination 01-bat-img      0 yes 0 0
+capture_combination 02-bat-perc     0 yes 1 0
+capture_combination 03-bt-active    1 yes 2 0
+capture_combination 04-bt-off       1 yes 2 0
+capture_combination 05-meteo        0 yes 2 1
+capture_combination 06-bt-bat       1 yes 0 0
+capture_combination 07-bt-meteo     1 yes 2 1
+capture_combination 08-bat-meteo    0 yes 0 1
+capture_combination 09-bt-bat-meteo 1 yes 0 1
 #capture_combination 05-battery-percentage 0 2 no
 #capture_combination 06-bluetooth-active-battery-visual 1 0 yes

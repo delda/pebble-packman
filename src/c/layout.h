@@ -13,6 +13,6 @@ typedef enum {
 } LayoutPoint;
 
 // Returns the center for an element in a layout containing element_count items.
-// The widths are used to center the complete group, not just its slot centers.
-GPoint layout_get_point(Layer *layer, const int *element_widths,
-                        int element_count, int element_index);
+// Each element is centered on its assigned slot; its draw function accounts
+// for the element's own dimensions.
+GPoint layout_get_point(Layer *layer, int element_count, int element_index);
