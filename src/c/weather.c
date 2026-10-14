@@ -2,7 +2,7 @@
 
 #include "weather.h"
 
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_EMERY)
 
 #define WEATHER_WIDTH 59
 #define WEATHER_HEIGHT 24

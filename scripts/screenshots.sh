@@ -149,7 +149,7 @@ capture_combination 00-none         0 yes 2 0
 capture_combination 01-bat-img      0 yes 0 0
 capture_combination 02-bat-perc     0 yes 1 0
 capture_combination 03-bt-active    1 yes 2 0
-capture_combination 04-bt-off       1 yes 2 0
+capture_combination 04-bt-off       1 no  2 0
 capture_combination 05-meteo        0 yes 2 1
 capture_combination 06-bt-bat       1 yes 0 0
 capture_combination 07-bt-meteo     1 yes 2 1
