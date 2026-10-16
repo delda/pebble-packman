@@ -106,8 +106,8 @@ capture_combination() {
   local weather_for_capture="${5:-0}"
   local screenshot_path="$OUTPUT_DIR/${sequence}.png"
 
-  # The app configuration controls whether the Bluetooth icon is shown. The
-  # emulator Bluetooth connection state is separate and does not hide the icon.
+  # Visibility and the displayed Bluetooth state are controlled by app messages.
+  # Keep the emulator transport connected so subsequent commands can reach it.
   local weather_enabled="$weather_for_capture"
   local app_message=("10001=$bluetooth_visible" "10002=$battery_mode" "10004=$weather_enabled")
   if [[ "$weather_enabled" -eq 1 ]]; then
@@ -120,9 +120,10 @@ capture_combination() {
   pebble emu-battery --emulator "$PLATFORM" --percent 100
   set_screenshot_time
 
-  if [[ -n "$bluetooth_state" ]]; then
-    pebble emu-bt-connection --emulator "$PLATFORM" --connected "$bluetooth_state"
-  fi
+  # Disconnecting Chalk here prevents send-app-message from fetching watch info.
+  # BluetoothConnected (10003) already selects the disconnected artwork without
+  # interrupting the transport used to configure and capture the next frame.
+  pebble emu-bt-connection --emulator "$PLATFORM" --connected yes
 
   # Send directly to the emulator after all commands that can restart or
   # resynchronise the app, so PyPKJS cannot overwrite BatteryMode afterwards.

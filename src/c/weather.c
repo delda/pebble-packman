@@ -2,9 +2,12 @@
 
 #include "weather.h"
 
-#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_EMERY) || \
-    defined(PBL_PLATFORM_BASALT)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
+    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
+    defined(PBL_PLATFORM_DIORITE)
 
+// Small-screen platforms share Basalt's compact weather text and vector icons.
 #define WEATHER_ICON_WIDTH 19
 #define WEATHER_TEXT_GAP 2
 #if defined(PBL_PLATFORM_GABBRO)
@@ -98,6 +101,9 @@ WeatherData weather_get_data(void) {
 }
 
 static void draw_cloud(GContext *ctx, GPoint origin, GColor color) {
+#ifndef PBL_COLOR
+  color = GColorBlack;
+#endif
   graphics_context_set_fill_color(ctx, color);
   graphics_fill_circle(ctx, GPoint(origin.x + 6, origin.y + 10), 4);
   graphics_fill_circle(ctx, GPoint(origin.x + 11, origin.y + 8), 6);
@@ -181,7 +187,7 @@ static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
     return;
   }
   if (icon == WEATHER_ICON_FOG) {
-    graphics_context_set_stroke_color(ctx, GColorLightGray);
+    graphics_context_set_stroke_color(ctx, color);
     graphics_context_set_stroke_width(ctx, 2);
     graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 5), GPoint(origin.x + 16, origin.y + 5));
     graphics_draw_line(ctx, GPoint(origin.x, origin.y + 10), GPoint(origin.x + 18, origin.y + 10));
@@ -250,7 +256,7 @@ static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
     return;
   }
   if (icon == WEATHER_ICON_CLOUDY) {
-    draw_sun(ctx, origin, GColorChromeYellow);
+    draw_sun(ctx, origin, icon_color(WEATHER_ICON_CLEAR));
     draw_cloud(ctx, origin, GColorLightGray);
     return;
   }

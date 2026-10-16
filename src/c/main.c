@@ -88,8 +88,16 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
                                        layout_element_index++));
   }
   if (weather_visible) {
-    weather_draw(ctx, layout_get_point(layer, layout_element_count,
-                                       layout_element_index++));
+    GPoint weather_center = layout_get_point(layer, layout_element_count,
+                                             layout_element_index++);
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_DIORITE)
+    // Give the weather more clearance from Pac-Man's band in the two-item layout.
+    if (layout_element_count == 2) {
+      weather_center.y += 4;
+    }
+#endif
+    weather_draw(ctx, weather_center);
   }
 #endif
   packman_draw_hands_on_top(layer, ctx, &s_clock_time);
