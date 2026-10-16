@@ -94,6 +94,7 @@ require_command ffmpeg
 require_command nc
 require_command pebble
 require_command rg
+require_command python3
 
 trap stop_emulator EXIT
 cd "$PROJECT_DIR"
@@ -121,17 +122,46 @@ mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_VIDEO" "$OUTPUT_GIF"
 frames_dir="$(mktemp -d)"
 
+# Keep the recording configuration independent of the phone's saved settings.
+# Use a temporary bundle with an inert JS companion so its ready handler cannot
+# hide Bluetooth or change the battery/weather settings during the animation.
+readonly CAPTURE_BUILD="$frames_dir/initial-animation.pbw"
+readonly APP_UUID="$(python3 - "$APP_BUILD" "$CAPTURE_BUILD" <<'PY'
+import json
+import sys
+import zipfile
+
+with zipfile.ZipFile(sys.argv[1]) as source, zipfile.ZipFile(sys.argv[2], "w") as target:
+    print(json.loads(source.read("appinfo.json"))["uuid"])
+    for entry in source.infolist():
+        data = source.read(entry.filename)
+        if entry.filename == "pebble-js-app.js":
+            data = b"// Recording configuration is set directly by the capture script.\n"
+        target.writestr(entry, data)
+PY
+)"
+
 start_emulator
+pebble emu-bt-connection --emulator "$PLATFORM" --connected yes
+readonly PYPKJS_PORT="$(emulator_value pypkjs port)"
+
+# Persist the indicator settings before the recorded launch, including its
+# very first frame: only Bluetooth visible and connected; battery and weather
+# hidden, even if previous emulator runs enabled them.
+pebble install --phone "localhost:$PYPKJS_PORT" "$CAPTURE_BUILD"
+sleep 1
+pebble send-app-message --phone "localhost:$PYPKJS_PORT" --app-uuid "$APP_UUID" \
+  --int 10001=1 10002=2 10003=1 10004=0
+sleep 1
 
 # `emu-button` synchronises QEMU to the host clock when it connects. Wake the
 # display first, then set the intended time immediately before the first app
-# launch so its opening animation still starts at 23:59.
+# launch being recorded so its opening animation still starts at 23:59.
 pebble emu-button --emulator "$PLATFORM" click back
 pebble emu-set-time --emulator "$PLATFORM" "${ANIMATION_TIME}:00"
 #sleep 1
 
-readonly PYPKJS_PORT="$(emulator_value pypkjs port)"
-pebble install --phone "localhost:$PYPKJS_PORT" "$APP_BUILD"
+pebble install --phone "localhost:$PYPKJS_PORT" "$CAPTURE_BUILD"
 #sleep "$FRAME_INTERVAL_SECONDS"
 capture_frames
 

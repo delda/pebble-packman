@@ -5,6 +5,10 @@
 #include "weather.h"
 
 #define PERSIST_KEY_SHOW_BLUETOOTH_ICON 1
+// Eight int32 settings need 89 bytes; the outgoing weather state needs 9.
+// Allocating the platform maximum can exhaust aplite's application heap.
+#define APP_MESSAGE_INBOX_SIZE 128
+#define APP_MESSAGE_OUTBOX_SIZE 32
 
 static Layer *s_face_layer;
 static GBitmap *s_connected_bitmap;
@@ -65,7 +69,10 @@ void bluetooth_initialize(Layer *face_layer, const BluetoothConfiguration *confi
     .pebble_app_connection_handler = connection_handler,
   });
   app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  AppMessageResult result = app_message_open(APP_MESSAGE_INBOX_SIZE, APP_MESSAGE_OUTBOX_SIZE);
+  if (result != APP_MSG_OK) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "AppMessage open failed: %d", result);
+  }
 }
 
 void bluetooth_deinitialize(void) {

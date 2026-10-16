@@ -5,7 +5,20 @@
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_EMERY) || \
     defined(PBL_PLATFORM_BASALT)
 
-#define WEATHER_WIDTH 59
+#define WEATHER_ICON_WIDTH 19
+#define WEATHER_TEXT_GAP 2
+#if defined(PBL_PLATFORM_GABBRO)
+#define WEATHER_FONT FONT_KEY_GOTHIC_24_BOLD
+#define WEATHER_TEXT_WIDTH 50
+#define WEATHER_TEXT_HEIGHT 28
+#define WEATHER_TEXT_OFFSET_Y -5
+#else
+#define WEATHER_FONT FONT_KEY_GOTHIC_18_BOLD
+#define WEATHER_TEXT_WIDTH 38
+#define WEATHER_TEXT_HEIGHT 24
+#define WEATHER_TEXT_OFFSET_Y -3
+#endif
+#define WEATHER_WIDTH (WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + WEATHER_TEXT_WIDTH)
 #define WEATHER_HEIGHT 24
 
 enum WeatherPersistKey {
@@ -86,17 +99,48 @@ WeatherData weather_get_data(void) {
 
 static void draw_cloud(GContext *ctx, GPoint origin, GColor color) {
   graphics_context_set_fill_color(ctx, color);
-  graphics_fill_circle(ctx, GPoint(origin.x + 6, origin.y + 9), 5);
-  graphics_fill_circle(ctx, GPoint(origin.x + 11, origin.y + 7), 6);
-  graphics_fill_rect(ctx, GRect(origin.x + 3, origin.y + 9, 14, 6),
+  graphics_fill_circle(ctx, GPoint(origin.x + 6, origin.y + 10), 4);
+  graphics_fill_circle(ctx, GPoint(origin.x + 11, origin.y + 8), 6);
+  graphics_fill_rect(ctx, GRect(origin.x + 3, origin.y + 10, 14, 6),
                      0, GCornerNone);
 }
 
-static void draw_rain_drop(GContext *ctx, GPoint origin, int x, int y,
-                           GColor color) {
+static void draw_drop(GContext *ctx, GPoint origin, int x, int y,
+                      GColor color) {
+  GPoint points[] = {{origin.x + x, origin.y + y},
+                     {origin.x + x - 2, origin.y + y + 4},
+                     {origin.x + x, origin.y + y + 6},
+                     {origin.x + x + 2, origin.y + y + 4}};
+  GPathInfo path_info = {.num_points = ARRAY_LENGTH(points), .points = points};
+  GPath *path = gpath_create(&path_info);
+  graphics_context_set_fill_color(ctx, color);
+  if (path != NULL) {
+    gpath_draw_filled(ctx, path);
+    gpath_destroy(path);
+  }
+}
+
+static void draw_sun(GContext *ctx, GPoint origin, GColor color) {
+  graphics_context_set_fill_color(ctx, color);
+  graphics_fill_circle(ctx, GPoint(origin.x + 9, origin.y + 9), 4);
   graphics_context_set_stroke_color(ctx, color);
-  graphics_draw_line(ctx, GPoint(origin.x + x, origin.y + y),
-                     GPoint(origin.x + x - 2, origin.y + y + 5));
+  graphics_context_set_stroke_width(ctx, 2);
+  graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y),
+                     GPoint(origin.x + 9, origin.y + 3));
+  graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y + 15),
+                     GPoint(origin.x + 9, origin.y + 18));
+  graphics_draw_line(ctx, GPoint(origin.x, origin.y + 9),
+                     GPoint(origin.x + 3, origin.y + 9));
+  graphics_draw_line(ctx, GPoint(origin.x + 15, origin.y + 9),
+                     GPoint(origin.x + 18, origin.y + 9));
+  graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 2),
+                     GPoint(origin.x + 4, origin.y + 4));
+  graphics_draw_line(ctx, GPoint(origin.x + 14, origin.y + 14),
+                     GPoint(origin.x + 16, origin.y + 16));
+  graphics_draw_line(ctx, GPoint(origin.x + 14, origin.y + 4),
+                     GPoint(origin.x + 16, origin.y + 2));
+  graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 16),
+                     GPoint(origin.x + 4, origin.y + 14));
 }
 
 static GColor icon_color(WeatherIcon icon) {
@@ -125,27 +169,8 @@ static GColor icon_color(WeatherIcon icon) {
 
 static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
   GColor color = icon_color(icon);
-  graphics_context_set_fill_color(ctx, color);
-  graphics_context_set_stroke_color(ctx, color);
-  graphics_context_set_stroke_width(ctx, 2);
   if (icon == WEATHER_ICON_CLEAR) {
-    graphics_fill_circle(ctx, GPoint(origin.x + 9, origin.y + 9), 4);
-    graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y),
-                       GPoint(origin.x + 9, origin.y + 3));
-    graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y + 15),
-                       GPoint(origin.x + 9, origin.y + 18));
-    graphics_draw_line(ctx, GPoint(origin.x, origin.y + 9),
-                       GPoint(origin.x + 3, origin.y + 9));
-    graphics_draw_line(ctx, GPoint(origin.x + 15, origin.y + 9),
-                       GPoint(origin.x + 18, origin.y + 9));
-    graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 2),
-                       GPoint(origin.x + 4, origin.y + 4));
-    graphics_draw_line(ctx, GPoint(origin.x + 14, origin.y + 14),
-                       GPoint(origin.x + 16, origin.y + 16));
-    graphics_draw_line(ctx, GPoint(origin.x + 14, origin.y + 4),
-                       GPoint(origin.x + 16, origin.y + 2));
-    graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 16),
-                       GPoint(origin.x + 4, origin.y + 14));
+    draw_sun(ctx, origin, color);
     return;
   }
   if (icon == WEATHER_ICON_UNAVAILABLE) {
@@ -156,12 +181,15 @@ static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
     return;
   }
   if (icon == WEATHER_ICON_FOG) {
+    graphics_context_set_stroke_color(ctx, GColorLightGray);
+    graphics_context_set_stroke_width(ctx, 2);
     graphics_draw_line(ctx, GPoint(origin.x + 2, origin.y + 5), GPoint(origin.x + 16, origin.y + 5));
     graphics_draw_line(ctx, GPoint(origin.x, origin.y + 10), GPoint(origin.x + 18, origin.y + 10));
     graphics_draw_line(ctx, GPoint(origin.x + 3, origin.y + 15), GPoint(origin.x + 17, origin.y + 15));
     return;
   }
   if (icon == WEATHER_ICON_SNOW) {
+    graphics_context_set_stroke_color(ctx, color);
     graphics_context_set_stroke_width(ctx, 1);
     graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y + 5),
                        GPoint(origin.x + 9, origin.y + 13));
@@ -196,47 +224,60 @@ static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
     return;
   }
   if (icon == WEATHER_ICON_THUNDER) {
+    // Thunder is represented by the original red lightning shape alone.
     GPoint points[] = {{origin.x + 12, origin.y}, {origin.x + 3, origin.y + 11},
                        {origin.x + 8, origin.y + 11}, {origin.x + 5, origin.y + 21},
                        {origin.x + 17, origin.y + 9}, {origin.x + 12, origin.y + 9}};
     GPathInfo path_info = {.num_points = ARRAY_LENGTH(points), .points = points};
     GPath *path = gpath_create(&path_info);
     if (path != NULL) {
+      graphics_context_set_fill_color(ctx, color);
       gpath_draw_filled(ctx, path);
       gpath_destroy(path);
     }
     return;
   }
   if (icon == WEATHER_ICON_RAIN) {
-    // Rain is intentionally represented by falling drops only, without a
-    // cloud. The icon_color() palette gives these drops a suitable blue hue
-    // on color watches and black on monochrome watches.
-    draw_rain_drop(ctx, origin, 2, 0, color);
-    draw_rain_drop(ctx, origin, 9, 2, color);
-    draw_rain_drop(ctx, origin, 16, 0, color);
-    draw_rain_drop(ctx, origin, 5, 9, color);
-    draw_rain_drop(ctx, origin, 13, 11, color);
-    draw_rain_drop(ctx, origin, 1, 14, color);
+    // Rain is represented by a dense field of independent vector drops.
+    draw_drop(ctx, origin, 2, 1, color);
+    draw_drop(ctx, origin, 9, 1, color);
+    draw_drop(ctx, origin, 16, 1, color);
+    draw_drop(ctx, origin, 5, 8, color);
+    draw_drop(ctx, origin, 12, 8, color);
+    draw_drop(ctx, origin, 2, 15, color);
+    draw_drop(ctx, origin, 9, 15, color);
+    draw_drop(ctx, origin, 16, 15, color);
+    return;
+  }
+  if (icon == WEATHER_ICON_CLOUDY) {
+    draw_sun(ctx, origin, GColorChromeYellow);
+    draw_cloud(ctx, origin, GColorLightGray);
     return;
   }
   draw_cloud(ctx, origin, GColorLightGray);
-  if (icon == WEATHER_ICON_CLOUDY) {
-    return;
-  }
 }
 
 void weather_draw(GContext *ctx, GPoint origin) {
   if (!weather_is_enabled()) return;
-  origin.x -= WEATHER_WIDTH / 2;
-  origin.y -= WEATHER_HEIGHT / 2;
   WeatherData data = weather_get_data();
   char temperature[8];
   snprintf(temperature, sizeof(temperature), data.has_data ? "%d\xC2\xB0" : "--\xC2\xB0",
            data.has_data ? data.temperature : 0);
+
+  GFont font = fonts_get_system_font(WEATHER_FONT);
+  GSize temperature_size = graphics_text_layout_get_content_size(
+      temperature, font, GRect(0, 0, WEATHER_TEXT_WIDTH, WEATHER_TEXT_HEIGHT),
+      GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
+  int content_width = WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + temperature_size.w;
+  origin.x -= content_width / 2;
+  origin.y -= WEATHER_HEIGHT / 2;
+
   draw_icon(ctx, data.has_data ? data.forecast_icon : WEATHER_ICON_UNAVAILABLE, origin);
   graphics_context_set_text_color(ctx, GColorBlack);
-  graphics_draw_text(ctx, temperature, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-                     GRect(origin.x + 21, origin.y - 3, 38, 24),
+  graphics_draw_text(ctx, temperature, font,
+                     GRect(origin.x + WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP,
+                           origin.y + WEATHER_TEXT_OFFSET_Y, temperature_size.w,
+                           WEATHER_TEXT_HEIGHT),
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 

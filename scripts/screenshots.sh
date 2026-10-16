@@ -30,7 +30,7 @@ stop_emulator() {
   pebble kill --force >/dev/null 2>&1 || true
 }
 
-start_emulator() {
+start_emulator_attempt() {
   local attempt
   pebble kill --force >/dev/null 2>&1 || true
   emulator_logs_file="$(mktemp)"
@@ -52,6 +52,32 @@ start_emulator() {
 
   cat "$emulator_logs_file" >&2
   echo "Unable to start a ready $PLATFORM emulator." >&2
+  return 1
+}
+
+start_emulator() {
+  if start_emulator_attempt; then
+    return 0
+  fi
+
+  # A stale Chalk SPI flash can prevent QEMU from reaching its boot banner.
+  # Screenshot runs need a deterministic emulator state, so reset the SDK data
+  # and retry once rather than leaving the capture sequence blocked.
+  if [[ "$PLATFORM" == "chalk" ]]; then
+    echo "Resetting stale Chalk emulator data and retrying." >&2
+    if [[ -n "$emulator_logs_pid" ]]; then
+      kill "$emulator_logs_pid" 2>/dev/null || true
+      wait "$emulator_logs_pid" 2>/dev/null || true
+    fi
+    pebble kill --force >/dev/null 2>&1 || true
+    pebble wipe >/dev/null
+    emulator_logs_pid=""
+    [[ -z "$emulator_logs_file" ]] || rm -f "$emulator_logs_file"
+    emulator_logs_file=""
+    start_emulator_attempt
+    return
+  fi
+
   return 1
 }
 
@@ -144,7 +170,18 @@ pebble install --emulator "$PLATFORM" "$DEBUG_BUNDLE"
 # Wait for PyPKJS's ready event to finish. It sends the persisted settings once
 # at startup; the capture loop must apply its requested BatteryMode afterwards.
 sleep 2
-#
+# only bluetooth
+#capture_combination 00-none         0 yes 2 0
+#capture_combination 01-bt-active    1 yes 2 0
+#capture_combination 02-bt-off       1 yes 2 0
+# bluetooth + battery
+#capture_combination 00-none         0 yes 2 0
+#capture_combination 01-bat-img      0 yes 0 0
+#capture_combination 02-bat-perc     0 yes 1 0
+#capture_combination 03-bt-active    1 yes 2 0
+#capture_combination 04-bt-off       1 yes 2 0
+#capture_combination 05-bt-bat       1 yes 0 0
+# all
 capture_combination 00-none         0 yes 2 0
 capture_combination 01-bat-img      0 yes 0 0
 capture_combination 02-bat-perc     0 yes 1 0
@@ -156,4 +193,3 @@ capture_combination 07-bt-meteo     1 yes 2 1
 capture_combination 08-bat-meteo    0 yes 0 1
 capture_combination 09-bt-bat-meteo 1 yes 0 1
 #capture_combination 05-battery-percentage 0 2 no
-#capture_combination 06-bluetooth-active-battery-visual 1 0 yes
