@@ -27,7 +27,7 @@ static GPoint point_on_rectangle(GRect rect, int time_minutes) {
   return GPoint(right - (distance - height), bottom);
 }
 
-#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_EMERY)
 static int32_t direction_on_rectangle(GRect rect, int time_minutes) {
   int width = rect.size.w - 1;
   int height = rect.size.h - 1;
@@ -71,7 +71,7 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   GRect game_track = rect_inset(game_frame, 10);
   int current_time_minutes = clock_time_in_minutes(clock_time);
   GFont fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_EMERY)
   fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
 #endif
 
@@ -114,7 +114,7 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
     packman_draw_fruit_bonus(ctx, point_on_rectangle(game_track, cherries_time),
                              fruit_bonus_font);
   }
-#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_EMERY)
   packman_draw_pacman_facing(ctx, point_on_rectangle(game_track, pacman_time_minutes),
                              direction_on_rectangle(game_track, pacman_time_minutes), mouth_open);
 #else

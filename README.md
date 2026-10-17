@@ -36,11 +36,11 @@ set `pebble.watchapp.watchface` to `true` in `package.json`.
 
 Full SDK docs, tutorials, and API reference: <https://developer.repebble.com>
 
-## Step count on Gabbro, Chalk, Emery and Basalt
+## Step count on Gabbro, Chalk, Emery, Basalt and Flint
 
-Pebble Round 2, Pebble Time Round, Pebble Time 2, Pebble Time and Time Steel show
+Pebble Round 2, Pebble Time Round, Pebble Time 2, Pebble Time, Time Steel and Pebble 2 Duo show
 today's Pebble Health step count with a vector shoe icon. Steps are enabled by
-default on Gabbro, Chalk, Emery and Basalt and can be hidden with **Show steps** in configuration.
+default on Gabbro, Chalk, Emery, Basalt and Flint and can be hidden with **Show steps** in configuration.
 Enable Pebble Health to provide the data; `--` means it is unavailable.
 The count refreshes with movement, day changes and the minute tick.
 Other platforms do not display the step indicator.
@@ -48,7 +48,7 @@ Other platforms do not display the step indicator.
 With Bluetooth, battery, weather and steps enabled, the four highest layout
 slots are used, leaving the bottom slot empty. The two side slots are inset on
 these platforms to keep the wider groups inside the dial.
-`scripts/screenshots.sh gabbro` (or `chalk` / `emery` / `basalt`)
+`scripts/screenshots.sh gabbro` (or `chalk` / `emery` / `basalt` / `flint`)
 also captures all combinations with steps, using 13,947 simulated steps
 and 75% battery. Screenshot builds use a non-persistent debug preview for steps
 so Chalk firmware without emulator health injection shows the same value.
@@ -58,3 +58,7 @@ Basalt uses the compact 19px gray shoe and Gothic 18 Bold count. The shoe is
 stacked above the number so five digits fit in its narrower white playfield.
 Weather also uses two rows, with its icon above the temperature, aligned with
 the step indicator. Weather, Bluetooth and battery retain Basalt's compact sizes.
+
+Flint shares Basalt's 144×168 layout, fonts, hand lengths and indicator positions.
+Its monochrome shoe has a white fill and black outline and details; only the
+color palette differs from Basalt.

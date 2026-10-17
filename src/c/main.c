@@ -59,7 +59,7 @@ static GPoint indicator_get_point(Layer *layer, int count, int index) {
   if (count == 2 && steps_is_visible()) point.y += 18;
 #elif defined(PBL_PLATFORM_CHALK)
   if (count == 2 && steps_is_visible()) point.y += 16;
-#elif defined(PBL_PLATFORM_BASALT)
+#elif defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
   // Keep both stacked groups inside the white playfield at the top and bottom.
   if (steps_is_visible() || weather_is_enabled()) {
     if (count == 2 || (count == 3 && index < 2)) point.y += 10;

@@ -20,7 +20,7 @@ function supportsSteps() {
   if (typeof Pebble.getActiveWatchInfo !== 'function') return false;
   var platform = Pebble.getActiveWatchInfo().platform;
   return platform === 'gabbro' || platform === 'chalk' ||
-      platform === 'emery' || platform === 'basalt';
+      platform === 'emery' || platform === 'basalt' || platform === 'flint';
 }
 
 function configuredSteps() {
