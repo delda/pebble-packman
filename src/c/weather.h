@@ -26,5 +26,5 @@ void weather_received(Tuple *weather_enabled, Tuple *weather_temperature,
                       Tuple *weather_request);
 bool weather_is_enabled(void);
 WeatherData weather_get_data(void);
-void weather_draw(GContext *ctx, GPoint origin);
+void weather_draw(GContext *ctx, GPoint origin, bool stacked);
 int weather_get_width(void);

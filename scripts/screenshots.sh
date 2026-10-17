@@ -134,7 +134,8 @@ capture_combination() {
   fi
   if [[ "$PLATFORM" == "gabbro" || "$PLATFORM" == "chalk" ||
         "$PLATFORM" == "emery" || "$PLATFORM" == "basalt" ||
-        "$PLATFORM" == "flint" || "$PLATFORM" == "diorite" ]]; then
+        "$PLATFORM" == "flint" || "$PLATFORM" == "diorite" ||
+        "$PLATFORM" == "aplite" ]]; then
     app_message+=("10009=$steps_for_capture")
     # Older Chalk firmware does not accept the emulator's health injection.
     # This non-persistent preview is handled only by the debug watchface build.

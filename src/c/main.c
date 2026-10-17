@@ -60,7 +60,7 @@ static GPoint indicator_get_point(Layer *layer, int count, int index) {
 #elif defined(PBL_PLATFORM_CHALK)
   if (count == 2 && steps_is_visible()) point.y += 16;
 #elif defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
+    defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_APLITE)
   // Keep both stacked groups inside the white playfield at the top and bottom.
   if (steps_is_visible() || weather_is_enabled()) {
     if (count == 2 || (count == 3 && index < 2)) point.y += 10;
@@ -70,7 +70,6 @@ static GPoint indicator_get_point(Layer *layer, int count, int index) {
   // Leave room between the two groups now that both use Gothic 24 Bold.
   if (steps_is_visible() && weather_is_enabled()) {
     if (count == 2 && index == 0) point.x -= 6;
-    if (count == 4 && index == 2) point.x -= 9;
   }
 #endif
   return point;
@@ -91,6 +90,15 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
                              (weather_visible ? 1 : 0) +
                              (steps_visible ? 1 : 0);
   int layout_element_index = 0;
+#if defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_BASALT) || \
+    defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_FLINT)
+  const bool stacked_indicators = true;
+#elif defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO) || \
+    defined(PBL_PLATFORM_CHALK)
+  const bool stacked_indicators = layout_element_count == 4;
+#else
+  const bool stacked_indicators = false;
+#endif
 #endif
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
   // Keep the icon within the upper-left area of the inner white clock face.
@@ -117,11 +125,11 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
   if (weather_visible) {
     GPoint weather_center = indicator_get_point(layer, layout_element_count,
                                              layout_element_index++);
-    weather_draw(ctx, weather_center);
+    weather_draw(ctx, weather_center, stacked_indicators);
   }
   if (steps_visible) {
     steps_draw(ctx, indicator_get_point(layer, layout_element_count,
-                                    layout_element_index++));
+                                    layout_element_index++), stacked_indicators);
   }
 #endif
   packman_draw_hands_on_top(layer, ctx, &s_clock_time);

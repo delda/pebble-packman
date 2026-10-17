@@ -21,7 +21,7 @@ function supportsSteps() {
   var platform = Pebble.getActiveWatchInfo().platform;
   return platform === 'gabbro' || platform === 'chalk' ||
       platform === 'emery' || platform === 'basalt' || platform === 'flint' ||
-      platform === 'diorite';
+      platform === 'diorite' || platform === 'aplite';
 }
 
 function configuredSteps() {
@@ -36,6 +36,9 @@ function configurationPage(showBluetoothIcon, batteryMode) {
   var stepsOption = supportsSteps()
       ? '<p><label><input id="steps" type="checkbox"' + stepsChecked + '> ' +
         config.showSteps.label + '</label></p>' : '';
+  if (supportsSteps() && Pebble.getActiveWatchInfo().platform === 'aplite') {
+    stepsOption += '<p>Step counting is unavailable on this watch; the indicator shows --.</p>';
+  }
   var batteryOptions = config.batteryMode.options.map(function(option) {
     var selected = option.value === batteryMode ? ' selected' : '';
     return '<option value="' + option.value + '"' + selected + '>' + option.label + '</option>';

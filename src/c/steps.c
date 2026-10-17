@@ -4,12 +4,13 @@
 
 #if (defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
      defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
-     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE)) && defined(PBL_HEALTH)
+     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE) || \
+     defined(PBL_PLATFORM_APLITE))
 
 #define PERSIST_KEY_STEPS_ENABLED 0xF
 #define STEPS_TEXT_GAP 2
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
+    defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_APLITE)
 #define STEPS_ICON_WIDTH 19
 #define STEPS_FONT FONT_KEY_GOTHIC_18_BOLD
 #define STEPS_TEXT_WIDTH 60
@@ -28,8 +29,10 @@
 static Layer *s_face_layer;
 static bool s_enabled;
 static bool s_has_data;
+#ifdef PBL_HEALTH
 static bool s_subscribed;
-static HealthValue s_count;
+#endif
+static int32_t s_count;
 static GPath *s_shoe;
 #ifdef PBL_DEBUG
 static int s_preview_count = -1;
@@ -41,7 +44,7 @@ static const GPathInfo s_shoe_path = {
   .num_points = 13,
   .points = (GPoint[]) {
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
+    defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_APLITE)
     {2, 15}, {2, 9}, {3, 8}, {2, 6}, {2, 4}, {3, 3}, {8, 3},
     {9, 4}, {9, 6}, {8, 8}, {9, 8}, {15, 11}, {17, 15},
 #else
@@ -65,35 +68,47 @@ void steps_refresh(void) {
     return;
   }
 #endif
+#ifdef PBL_HEALTH
   HealthServiceAccessibilityMask accessible = health_service_metric_accessible(
       HealthMetricStepCount, time_start_of_today(), time(NULL));
   s_has_data = (accessible & HealthServiceAccessibilityMaskAvailable) != 0;
   s_count = s_has_data ? health_service_sum_today(HealthMetricStepCount) : 0;
+#else
+  // Aplite has no Pebble Health: show unavailable rather than invent a count.
+  s_has_data = false;
+  s_count = 0;
+#endif
   mark_dirty();
 }
 
+#ifdef PBL_HEALTH
 static void health_handler(HealthEventType event, void *context) {
   (void)context;
   if (event == HealthEventMovementUpdate || event == HealthEventSignificantUpdate) {
     steps_refresh();
   }
 }
+#endif
 
 void steps_initialize(Layer *face_layer) {
   s_face_layer = face_layer;
   s_enabled = !persist_exists(PERSIST_KEY_STEPS_ENABLED) ||
               persist_read_bool(PERSIST_KEY_STEPS_ENABLED);
   s_shoe = gpath_create(&s_shoe_path);
+#ifdef PBL_HEALTH
   s_subscribed = health_service_events_subscribe(health_handler, NULL);
   if (!s_subscribed) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Steps: health event subscription unavailable");
   }
+#endif
   steps_refresh();
 }
 
 void steps_deinitialize(void) {
+#ifdef PBL_HEALTH
   if (s_subscribed) health_service_events_unsubscribe();
   s_subscribed = false;
+#endif
   gpath_destroy(s_shoe);
   s_shoe = NULL;
   s_face_layer = NULL;
@@ -117,7 +132,7 @@ bool steps_is_visible(void) {
   return s_enabled;
 }
 
-void steps_draw(GContext *ctx, GPoint center) {
+void steps_draw(GContext *ctx, GPoint center, bool stacked) {
   if (!s_enabled) return;
   char text[12];
   if (s_has_data) {
@@ -129,19 +144,20 @@ void steps_draw(GContext *ctx, GPoint center) {
   GSize text_size = graphics_text_layout_get_content_size(
       text, font, GRect(0, 0, STEPS_TEXT_WIDTH, STEPS_TEXT_HEIGHT),
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
-  // Stack the compact shoe above the count to fit the narrow white playfield.
-  const GPoint origin = GPoint(center.x - STEPS_ICON_WIDTH / 2, center.y - 18);
-  const GRect text_bounds = GRect(center.x - text_size.w / 2, center.y,
-                                  text_size.w, STEPS_TEXT_HEIGHT);
-#else
-  const int width = STEPS_ICON_WIDTH + STEPS_TEXT_GAP + text_size.w;
-  const GPoint origin = GPoint(center.x - width / 2, center.y - STEPS_ICON_WIDTH / 2);
-  const GRect text_bounds = GRect(origin.x + STEPS_ICON_WIDTH + STEPS_TEXT_GAP,
-                                  center.y + STEPS_TEXT_OFFSET_Y,
-                                  text_size.w, STEPS_TEXT_HEIGHT);
-#endif
+  GPoint origin;
+  GRect text_bounds;
+  if (stacked) {
+    origin = GPoint(center.x - STEPS_ICON_WIDTH / 2,
+                    center.y - STEPS_ICON_WIDTH + 1);
+    text_bounds = GRect(center.x - text_size.w / 2, center.y,
+                       text_size.w, STEPS_TEXT_HEIGHT);
+  } else {
+    const int width = STEPS_ICON_WIDTH + STEPS_TEXT_GAP + text_size.w;
+    origin = GPoint(center.x - width / 2, center.y - STEPS_ICON_WIDTH / 2);
+    text_bounds = GRect(origin.x + STEPS_ICON_WIDTH + STEPS_TEXT_GAP,
+                       center.y + STEPS_TEXT_OFFSET_Y,
+                       text_size.w, STEPS_TEXT_HEIGHT);
+  }
 #ifdef PBL_COLOR
   graphics_context_set_fill_color(ctx, GColorLightGray);
   graphics_context_set_stroke_color(ctx, GColorDarkGray);
@@ -157,7 +173,7 @@ void steps_draw(GContext *ctx, GPoint center) {
   }
   // Cuff and shoe panels from the original vector.
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
+    defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_APLITE)
   graphics_draw_line(ctx, GPoint(origin.x + 3, origin.y + 8),
                      GPoint(origin.x + 8, origin.y + 8));
   graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y + 8),
@@ -189,6 +205,6 @@ void steps_set_enabled(bool enabled) { (void)enabled; }
 void steps_set_preview_count(int count) { (void)count; }
 #endif
 bool steps_is_visible(void) { return false; }
-void steps_draw(GContext *ctx, GPoint center) { (void)ctx; (void)center; }
+void steps_draw(GContext *ctx, GPoint center, bool stacked) { (void)ctx; (void)center; (void)stacked; }
 
 #endif

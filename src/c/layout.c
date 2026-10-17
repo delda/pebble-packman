@@ -11,7 +11,7 @@ static const LayoutPoint s_layout_slots[LAYOUT_MAX_ELEMENTS][LAYOUT_MAX_ELEMENTS
   { LAYOUT_POINT_1 },
   { LAYOUT_POINT_3, LAYOUT_POINT_4 },
   { LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_1 },
-  // Four indicators occupy the four highest points; the bottom stays empty.
+  // Four-item layouts use the symmetric grid below instead of these slots.
   { LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_2, LAYOUT_POINT_5 },
   { LAYOUT_POINT_1, LAYOUT_POINT_2, LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_5 },
 };
@@ -31,6 +31,26 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
   // Pac-Man's black outer band.
   int radius = smaller_side / LAYOUT_RADIUS_DIVISOR;
 
+  if (element_count == 4) {
+    // Four slots form a grid mirrored about the dial center on every platform.
+#if defined(PBL_ROUND)
+    // Keep the stacked groups inside the narrower lower part of the white disc.
+    const int column_offset = radius / 2;
+    const int row_offset = radius / 2;
+#else
+    const int32_t column_angle = LAYOUT_START_ANGLE + TRIG_MAX_ANGLE * 2 / 5;
+    const int column_offset = -cos_lookup(column_angle) * radius / TRIG_MAX_RATIO;
+#if defined(PBL_PLATFORM_EMERY)
+    const int row_offset = radius;
+#else
+    // Leave room for the stacked icon and count above the lower white edge.
+    const int row_offset = radius - 8;
+#endif
+#endif
+    return GPoint(center.x + (element_index % 2 == 0 ? -column_offset : column_offset),
+                  center.y + (element_index < 2 ? -row_offset : row_offset));
+  }
+
   // 90 degrees is below the center; each point advances by one fifth of a turn.
   int32_t angle = LAYOUT_START_ANGLE +
                   (TRIG_MAX_ANGLE * point_index / LAYOUT_POINT_COUNT);
@@ -41,29 +61,6 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
     defined(PBL_PLATFORM_DIORITE)
   if (point == LAYOUT_POINT_3 || point == LAYOUT_POINT_4) {
     result.y -= 10;
-  }
-#endif
-
-#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
-    defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
-    defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE)
-  // Inset the two side slots when all four indicators are shown so the weather
-  // and five-digit step count stay inside the white dial.
-  if (element_count == 4) {
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
-    // Two compact stacked groups share the 80px-wide white playfield.
-    if (point == LAYOUT_POINT_2) result.x += 13;
-    if (point == LAYOUT_POINT_5) result.x -= 13;
-#else
-#if defined(PBL_PLATFORM_CHALK)
-    const int inset = 16;
-#else
-    const int inset = 20;
-#endif
-    if (point == LAYOUT_POINT_2) result.x += inset;
-    if (point == LAYOUT_POINT_5) result.x -= inset;
-#endif
   }
 #endif
 

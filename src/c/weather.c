@@ -265,7 +265,7 @@ static void draw_icon(GContext *ctx, WeatherIcon icon, GPoint origin) {
   draw_cloud(ctx, origin, GColorLightGray);
 }
 
-void weather_draw(GContext *ctx, GPoint origin) {
+void weather_draw(GContext *ctx, GPoint origin, bool stacked) {
   if (!weather_is_enabled()) return;
   WeatherData data = weather_get_data();
   char temperature[8];
@@ -276,21 +276,20 @@ void weather_draw(GContext *ctx, GPoint origin) {
   GSize temperature_size = graphics_text_layout_get_content_size(
       temperature, font, GRect(0, 0, WEATHER_TEXT_WIDTH, WEATHER_TEXT_HEIGHT),
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_DIORITE)
-  // Share the icon row and text baseline with Basalt's stacked step indicator.
-  const GRect text_bounds = GRect(origin.x - temperature_size.w / 2, origin.y,
-                                  temperature_size.w, WEATHER_TEXT_HEIGHT);
-  origin.x -= WEATHER_ICON_WIDTH / 2;
-  origin.y -= 18;
-#else
-  int content_width = WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + temperature_size.w;
-  origin.x -= content_width / 2;
-  origin.y -= WEATHER_HEIGHT / 2;
-  const GRect text_bounds = GRect(origin.x + WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP,
-                                  origin.y + WEATHER_TEXT_OFFSET_Y,
-                                  temperature_size.w, WEATHER_TEXT_HEIGHT);
-#endif
+  GRect text_bounds;
+  if (stacked) {
+    text_bounds = GRect(origin.x - temperature_size.w / 2, origin.y,
+                       temperature_size.w, WEATHER_TEXT_HEIGHT);
+    origin.x -= WEATHER_ICON_WIDTH / 2;
+    origin.y -= 18;
+  } else {
+    int content_width = WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + temperature_size.w;
+    origin.x -= content_width / 2;
+    origin.y -= WEATHER_HEIGHT / 2;
+    text_bounds = GRect(origin.x + WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP,
+                       origin.y + WEATHER_TEXT_OFFSET_Y,
+                       temperature_size.w, WEATHER_TEXT_HEIGHT);
+  }
 
   draw_icon(ctx, data.has_data ? data.forecast_icon : WEATHER_ICON_UNAVAILABLE, origin);
   graphics_context_set_text_color(ctx, GColorBlack);
@@ -312,7 +311,7 @@ void weather_received(Tuple *a, Tuple *b, Tuple *c, Tuple *d, Tuple *e) {
 }
 bool weather_is_enabled(void) { return false; }
 WeatherData weather_get_data(void) { return (WeatherData){0}; }
-void weather_draw(GContext *ctx, GPoint origin) { (void)ctx; (void)origin; }
+void weather_draw(GContext *ctx, GPoint origin, bool stacked) { (void)ctx; (void)origin; (void)stacked; }
 int weather_get_width(void) { return 0; }
 
 #endif
