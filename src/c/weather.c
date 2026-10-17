@@ -10,7 +10,7 @@
 // Small-screen platforms share Basalt's compact weather text and vector icons.
 #define WEATHER_ICON_WIDTH 19
 #define WEATHER_TEXT_GAP 2
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_EMERY)
 #define WEATHER_FONT FONT_KEY_GOTHIC_24_BOLD
 #define WEATHER_TEXT_WIDTH 50
 #define WEATHER_TEXT_HEIGHT 28
@@ -23,7 +23,8 @@
 #define WEATHER_TEXT_OFFSET_Y -3
 #endif
 #define WEATHER_WIDTH (WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + WEATHER_TEXT_WIDTH)
-#define WEATHER_HEIGHT 24
+// Vector icons are anchored at y + 9; center that point on the layout slot.
+#define WEATHER_HEIGHT 19
 
 enum WeatherPersistKey {
   WEATHER_ENABLED_PERSIST_KEY = 0xB,

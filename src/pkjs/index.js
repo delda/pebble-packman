@@ -19,7 +19,7 @@ function configuredWeather() {
 function supportsSteps() {
   if (typeof Pebble.getActiveWatchInfo !== 'function') return false;
   var platform = Pebble.getActiveWatchInfo().platform;
-  return platform === 'gabbro' || platform === 'chalk';
+  return platform === 'gabbro' || platform === 'chalk' || platform === 'emery';
 }
 
 function configuredSteps() {

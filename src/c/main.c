@@ -59,6 +59,12 @@ static GPoint indicator_get_point(Layer *layer, int count, int index) {
   if (count == 2 && steps_is_visible()) point.y += 18;
 #elif defined(PBL_PLATFORM_CHALK)
   if (count == 2 && steps_is_visible()) point.y += 16;
+#elif defined(PBL_PLATFORM_EMERY)
+  // Leave room between the two groups now that both use Gothic 24 Bold.
+  if (steps_is_visible() && weather_is_enabled()) {
+    if (count == 2 && index == 0) point.x -= 6;
+    if (count == 4 && index == 2) point.x -= 9;
+  }
 #endif
   return point;
 }
@@ -104,13 +110,6 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
   if (weather_visible) {
     GPoint weather_center = indicator_get_point(layer, layout_element_count,
                                              layout_element_index++);
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
-    defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_DIORITE)
-    // Give the weather more clearance from Pac-Man's band in the two-item layout.
-    if (layout_element_count == 2) {
-      weather_center.y += 4;
-    }
-#endif
     weather_draw(ctx, weather_center);
   }
   if (steps_visible) {

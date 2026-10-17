@@ -44,7 +44,8 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
   }
 #endif
 
-#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK)
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
+    defined(PBL_PLATFORM_EMERY)
   // Inset the two side slots when all four indicators are shown so the weather
   // and five-digit step count stay inside the white dial.
   if (element_count == 4) {
