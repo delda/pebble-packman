@@ -38,7 +38,6 @@ void packman_draw_round_layout(Layer *layer, GContext *ctx, const ClockTime *clo
   graphics_fill_circle(ctx, center, inner_radius);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, white_circle_radius);
-  packman_draw_clock_hands(ctx, center, white_circle_radius, clock_time);
 
   graphics_context_set_text_color(ctx, GColorBlack);
   for (int hour = 0; hour < 24; ++hour) {

@@ -22,7 +22,7 @@
     "watchapp": {
       "watchface": true
     },
-    "capabilities": ["configurable"],
+    "capabilities": ["configurable", "health"],
     "messageKeys": [
       "dummy",
       "ShowBluetoothIcon",
@@ -32,7 +32,9 @@
       "WeatherTemperature",
       "WeatherForecastIcon",
       "WeatherUpdatedAt",
-      "WeatherRequest"
+      "WeatherRequest",
+      "StepsEnabled",
+      "StepsPreviewCount"
     ],
     "resources": {
       "media": [

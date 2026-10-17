@@ -34,5 +34,7 @@ void packman_draw_chalk(Layer *layer, GContext *ctx, const ClockTime *clock_time
                         int pacman_time_minutes, bool mouth_open);
 void packman_draw_gabbro(Layer *layer, GContext *ctx, const ClockTime *clock_time,
                          int pacman_time_minutes, bool mouth_open);
+void packman_draw_rectangular_hands(Layer *layer, GContext *ctx,
+                                    const ClockTime *clock_time);
 void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *clock_time,
                               int pacman_time_minutes, bool mouth_open);

@@ -12,6 +12,7 @@ fi
 readonly PLATFORM="$1"
 readonly PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly SCREENSHOT_TIME="13:25"
+readonly SCREENSHOT_STEPS=13947
 readonly OUTPUT_DIR="$PROJECT_DIR/resources/images/screenshots/$PLATFORM/initial-animation"
 readonly DEBUG_BUNDLE="$PROJECT_DIR/build/pebble-packman_debug.pbw"
 readonly APP_UUID="cca111ca-06ea-4a19-a7d7-a3bd06326f79"
@@ -33,6 +34,19 @@ stop_emulator() {
 start_emulator_attempt() {
   local attempt
   pebble kill --force >/dev/null 2>&1 || true
+  # The SDK can mistake a killed (zombie) process for a ready emulator.
+  # Clear only this platform's cached ports before starting a fresh session.
+  python3 - "$PLATFORM" <<'PYTHON'
+import json
+import pathlib
+import sys
+
+state_path = pathlib.Path("/tmp/pb-emulator.json")
+if state_path.exists():
+    state = json.loads(state_path.read_text())
+    state.pop(sys.argv[1], None)
+    state_path.write_text(json.dumps(state, indent=4))
+PYTHON
   emulator_logs_file="$(mktemp)"
   pebble logs -vv --emulator "$PLATFORM" >"$emulator_logs_file" 2>&1 &
   emulator_logs_pid=$!
@@ -104,6 +118,7 @@ capture_combination() {
   local bluetooth_state="${3:-}"
   local battery_mode="$4"
   local weather_for_capture="${5:-0}"
+  local steps_for_capture="${6:-0}"
   local screenshot_path="$OUTPUT_DIR/${sequence}.png"
 
   # Visibility and the displayed Bluetooth state are controlled by app messages.
@@ -116,6 +131,15 @@ capture_combination() {
   fi
   if [[ -n "$bluetooth_state" ]]; then
     app_message+=("10003=$([[ "$bluetooth_state" == yes ]] && echo 1 || echo 0)")
+  fi
+  if [[ "$PLATFORM" == "gabbro" || "$PLATFORM" == "chalk" ]]; then
+    app_message+=("10009=$steps_for_capture")
+    # Older Chalk firmware does not accept the emulator's health injection.
+    # This non-persistent preview is handled only by the debug watchface build.
+    app_message+=("10010=$SCREENSHOT_STEPS")
+    if [[ "$PLATFORM" == "gabbro" ]]; then
+      pebble emu-steps --emulator "$PLATFORM" "$SCREENSHOT_STEPS"
+    fi
   fi
   pebble emu-battery --emulator "$PLATFORM" --percent 75
   set_screenshot_time
@@ -165,9 +189,12 @@ mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DIR"/[0-9][0-9]-*.png
 
 start_emulator
-pebble emu-button --emulator "$PLATFORM" click back
+# Open the launcher so the previously installed watchface is stopped before
+# replacement; restarting its JS twice can crash the emulator on Chalk.
+pebble emu-button --emulator "$PLATFORM" click select
+sleep 1
 
-pebble install --emulator "$PLATFORM" "$DEBUG_BUNDLE"
+timeout 45s pebble install --emulator "$PLATFORM" "$DEBUG_BUNDLE"
 # Wait for PyPKJS's ready event to finish. It sends the persisted settings once
 # at startup; the capture loop must apply its requested BatteryMode afterwards.
 sleep 2
@@ -183,14 +210,21 @@ sleep 2
 #capture_combination 04-bt-off       1 yes 2 0
 #capture_combination 05-bt-bat       1 yes 0 0
 # all
-capture_combination 00-none         0 yes 2 0
-capture_combination 01-bat-img      0 yes 0 0
-capture_combination 02-bat-perc     0 yes 1 0
-capture_combination 03-bt-active    1 yes 2 0
-capture_combination 04-bt-off       1 no  2 0
-capture_combination 05-meteo        0 yes 2 1
-capture_combination 06-bt-bat       1 yes 0 0
-capture_combination 07-bt-meteo     1 yes 2 1
-capture_combination 08-bat-meteo    0 yes 0 1
-capture_combination 09-bt-bat-meteo 1 yes 0 1
-#capture_combination 05-battery-percentage 0 2 no
+capture_combination 00-none               0 yes 2 0 0
+capture_combination 01-bat-img            0 yes 0 0 0
+capture_combination 02-bat-perc           0 yes 1 0 0
+capture_combination 03-bt-active          1 yes 2 0 0
+capture_combination 04-bt-off             1 no  2 0 0
+capture_combination 05-meteo              0 yes 2 1 0
+capture_combination 06-steps              0 yes 2 0 1
+capture_combination 07-bt-bat             1 yes 0 0 0
+capture_combination 08-bt-meteo           1 yes 2 1 0
+capture_combination 09-bat-meteo          0 yes 0 1 0
+capture_combination 10-bt-steps           1 yes 2 0 1
+capture_combination 11-bat-steps          0 yes 0 0 1
+capture_combination 12-meteo-steps        0 yes 2 1 1
+capture_combination 13-bt-bat-meteo       1 yes 0 1 0
+capture_combination 14-bt-bat-steps       1 yes 0 0 1
+capture_combination 15-bt-meteo-steps     1 yes 2 1 1
+capture_combination 16-bat-meteo-steps    0 yes 0 1 1
+capture_combination 17-bt-bat-meteo-steps 1 yes 0 1 1

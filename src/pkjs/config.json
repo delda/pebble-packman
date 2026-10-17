@@ -12,6 +12,10 @@
       {"label": "Percentage", "value": "1"}
     ]
   },
+  "showSteps": {
+    "label": "Show steps",
+    "default": true
+  },
   "showWeather": {
     "label": "Show weather",
     "default": false

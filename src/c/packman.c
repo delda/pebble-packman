@@ -118,7 +118,7 @@ void packman_draw_fruit_bonus(GContext *ctx, GPoint position, GFont font) {
 }
 
 static void draw_tapered_hand(GContext *ctx, GPoint center, int32_t angle, int length,
-                              int tail_length, int base_width, int tip_width, GColor color) {
+                              int tail_length, int base_width, int tip_width) {
   int direction_x = cos_lookup(angle) / (TRIG_MAX_RATIO / 100);
   int direction_y = sin_lookup(angle) / (TRIG_MAX_RATIO / 100);
   GPoint points[] = {
@@ -133,7 +133,12 @@ static void draw_tapered_hand(GContext *ctx, GPoint center, int32_t angle, int l
   };
   GPathInfo hand = { .num_points = ARRAY_LENGTH(points), .points = points };
   GPath *path = gpath_create(&hand);
-  graphics_context_set_fill_color(ctx, color);
+  if (!path) return;
+  // The centered 3px outline leaves a thin white halo outside the black fill.
+  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_stroke_width(ctx, 3);
+  gpath_draw_outline(ctx, path);
+  graphics_context_set_fill_color(ctx, GColorBlack);
   gpath_draw_filled(ctx, path);
   gpath_destroy(path);
 }
@@ -151,15 +156,17 @@ void packman_draw_clock_hands(GContext *ctx, GPoint center, int radius,
   hour_length = radius * 3 / 4;
   minute_length = radius + 1;
 #endif
-  draw_tapered_hand(ctx, center, hour_angle, hour_length, 3, 14, 4, GColorBlack);
+  draw_tapered_hand(ctx, center, hour_angle, hour_length, 3, 14, 4);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_circle(ctx, center, 11);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, center, 10);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, 8);
-  draw_tapered_hand(ctx, center, minute_angle, minute_length, 3, 16, 8, GColorWhite);
-  draw_tapered_hand(ctx, center, minute_angle, minute_length, 2, 12, 3, GColorBlack);
+  draw_tapered_hand(ctx, center, minute_angle, minute_length, 2, 12, 3);
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, center, 6);
+  graphics_context_set_stroke_width(ctx, 1);
 }
 
 void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
@@ -176,14 +183,13 @@ void packman_draw(Layer *layer, GContext *ctx, const ClockTime *clock_time,
 }
 
 void packman_draw_hands_on_top(Layer *layer, GContext *ctx, const ClockTime *clock_time) {
-#if defined(PBL_PLATFORM_GABBRO)
+#if defined(PBL_ROUND)
   GRect bounds = layer_get_bounds(layer);
   int smaller_side = bounds.size.w < bounds.size.h ? bounds.size.w : bounds.size.h;
-  GPoint center = GPoint(bounds.size.w / 2, bounds.size.h / 2);
+  GPoint center = GPoint(bounds.origin.x + bounds.size.w / 2,
+                         bounds.origin.y + bounds.size.h / 2);
   packman_draw_clock_hands(ctx, center, smaller_side / 3, clock_time);
 #else
-  (void)layer;
-  (void)ctx;
-  (void)clock_time;
+  packman_draw_rectangular_hands(layer, ctx, clock_time);
 #endif
 }

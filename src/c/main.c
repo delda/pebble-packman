@@ -6,6 +6,7 @@
 #include "layout.h"
 #include "packman.h"
 #include "weather.h"
+#include "steps.h"
 
 static Window *s_window;
 static Layer *s_face_layer;
@@ -51,6 +52,17 @@ static bool animation_mouth_open(void) {
   return (s_animation_elapsed_ms / MOUTH_ANIMATION_FRAME_MS) % 2 == 0;
 }
 
+static GPoint indicator_get_point(Layer *layer, int count, int index) {
+  GPoint point = layout_get_point(layer, count, index);
+#if defined(PBL_PLATFORM_GABBRO)
+  // The wider step group needs more of the round dial's width in a two-item row.
+  if (count == 2 && steps_is_visible()) point.y += 18;
+#elif defined(PBL_PLATFORM_CHALK)
+  if (count == 2 && steps_is_visible()) point.y += 16;
+#endif
+  return point;
+}
+
 static void face_layer_update(Layer *layer, GContext *ctx) {
   packman_draw(layer, ctx, &s_clock_time, animation_time_minutes(), animation_mouth_open());
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
@@ -60,9 +72,11 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
   bool bluetooth_visible = bluetooth_is_visible();
   bool battery_visible = battery_is_visible();
   bool weather_visible = weather_is_enabled();
+  bool steps_visible = steps_is_visible();
   int layout_element_count = (bluetooth_visible ? 1 : 0) +
                              (battery_visible ? 1 : 0) +
-                             (weather_visible ? 1 : 0);
+                             (weather_visible ? 1 : 0) +
+                             (steps_visible ? 1 : 0);
   int layout_element_index = 0;
 #endif
 #if defined(PBL_BLUETOOTH_INDICATOR_SUPPORTED)
@@ -72,7 +86,7 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
   if (bluetooth_visible) {
-    bluetooth_draw_at(ctx, layout_get_point(layer, layout_element_count,
+    bluetooth_draw_at(ctx, indicator_get_point(layer, layout_element_count,
                                              layout_element_index++));
   }
 #else
@@ -84,11 +98,11 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
   if (battery_visible) {
-    battery_draw(ctx, layout_get_point(layer, layout_element_count,
+    battery_draw(ctx, indicator_get_point(layer, layout_element_count,
                                        layout_element_index++));
   }
   if (weather_visible) {
-    GPoint weather_center = layout_get_point(layer, layout_element_count,
+    GPoint weather_center = indicator_get_point(layer, layout_element_count,
                                              layout_element_index++);
 #if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
     defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_DIORITE)
@@ -98,6 +112,10 @@ static void face_layer_update(Layer *layer, GContext *ctx) {
     }
 #endif
     weather_draw(ctx, weather_center);
+  }
+  if (steps_visible) {
+    steps_draw(ctx, indicator_get_point(layer, layout_element_count,
+                                    layout_element_index++));
   }
 #endif
   packman_draw_hands_on_top(layer, ctx, &s_clock_time);
@@ -128,6 +146,7 @@ static void start_animation(void) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   clock_time_set(&s_clock_time, tick_time->tm_hour, tick_time->tm_min);
+  steps_refresh();
   layer_mark_dirty(s_face_layer);
 }
 
@@ -146,6 +165,7 @@ static void window_load(Window *window) {
   battery_initialize(s_face_layer);
 #endif
   weather_init();
+  steps_initialize(s_face_layer);
   start_animation();
 }
 
@@ -191,6 +211,7 @@ static void deinit(void) {
   battery_deinitialize();
 #endif
   weather_deinit();
+  steps_deinitialize();
 #ifdef PBL_DEBUG
   light_enable(false);
 #endif

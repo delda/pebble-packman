@@ -46,31 +46,33 @@ static int32_t direction_on_rectangle(GRect rect, int time_minutes) {
 }
 #endif
 
-void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *clock_time,
-                              int pacman_time_minutes, bool mouth_open) {
+static GRect game_frame_for_bounds(GRect bounds) {
+  return GRect(bounds.origin.x + 12, bounds.origin.y + 13,
+               bounds.size.w - 24, bounds.size.h - 26);
+}
+
+void packman_draw_rectangular_hands(Layer *layer, GContext *ctx,
+                                    const ClockTime *clock_time) {
   GRect bounds = layer_get_bounds(layer);
   GPoint center = GPoint(bounds.origin.x + bounds.size.w / 2,
                          bounds.origin.y + bounds.size.h / 2);
+  GRect playfield = rect_inset(game_frame_for_bounds(bounds), 20);
+  // Preserve each rectangular platform's hand lengths inside the white area.
+  packman_draw_clock_hands(ctx, center, playfield.size.w / 2 - 4, clock_time);
+}
+
+void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *clock_time,
+                              int pacman_time_minutes, bool mouth_open) {
+  GRect bounds = layer_get_bounds(layer);
   GRect hour_track = GRect(bounds.origin.x + 6, bounds.origin.y + 6,
                            bounds.size.w - 12, bounds.size.h - 12);
-  GRect game_frame = GRect(bounds.origin.x + 12, bounds.origin.y + 13,
-                           bounds.size.w - 24, bounds.size.h - 26);
+  GRect game_frame = game_frame_for_bounds(bounds);
   GRect game_playfield = rect_inset(game_frame, 20);
   GRect game_track = rect_inset(game_frame, 10);
-  GRect clock_face = GRect(center.x - bounds.size.w * 23 / 100,
-                           center.y - bounds.size.h * 19 / 100,
-                           bounds.size.w * 46 / 100, bounds.size.h * 38 / 100);
-  int clock_radius = (clock_face.size.w < clock_face.size.h ? clock_face.size.w : clock_face.size.h) / 2 - 4;
-  int hands_radius = clock_radius;
   int current_time_minutes = clock_time_in_minutes(clock_time);
   GFont fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_FLINT)
-  // Keep the minute hand inside the white playfield, clear of Pac-Man's black track.
-  hands_radius = game_playfield.size.w / 2 - 4;
   fruit_bonus_font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
-#elif defined(PBL_PLATFORM_APLITE) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE)
-  // Aplite and Basalt share Diorite's 144x168 layout; color-capable Basalt keeps its palette.
-  hands_radius = game_playfield.size.w / 2 - 4;
 #endif
 
   packman_initialize_decorations(current_time_minutes);
@@ -80,7 +82,6 @@ void packman_draw_rectangular(Layer *layer, GContext *ctx, const ClockTime *cloc
   graphics_fill_rect(ctx, game_frame, 0, GCornerNone);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, game_playfield, 0, GCornerNone);
-  packman_draw_clock_hands(ctx, center, hands_radius, clock_time);
 
   graphics_context_set_text_color(ctx, GColorBlack);
   for (int hour = 0; hour < 24; ++hour) {

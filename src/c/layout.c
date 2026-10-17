@@ -11,6 +11,7 @@ static const LayoutPoint s_layout_slots[LAYOUT_MAX_ELEMENTS][LAYOUT_MAX_ELEMENTS
   { LAYOUT_POINT_1 },
   { LAYOUT_POINT_3, LAYOUT_POINT_4 },
   { LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_1 },
+  // Four indicators occupy the four highest points; the bottom stays empty.
   { LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_2, LAYOUT_POINT_5 },
   { LAYOUT_POINT_1, LAYOUT_POINT_2, LAYOUT_POINT_3, LAYOUT_POINT_4, LAYOUT_POINT_5 },
 };
@@ -40,6 +41,20 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
     defined(PBL_PLATFORM_DIORITE)
   if (point == LAYOUT_POINT_3 || point == LAYOUT_POINT_4) {
     result.y -= 10;
+  }
+#endif
+
+#if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK)
+  // Inset the two side slots when all four indicators are shown so the weather
+  // and five-digit step count stay inside the white dial.
+  if (element_count == 4) {
+#if defined(PBL_PLATFORM_CHALK)
+    const int inset = 16;
+#else
+    const int inset = 20;
+#endif
+    if (point == LAYOUT_POINT_2) result.x += inset;
+    if (point == LAYOUT_POINT_5) result.x -= inset;
   }
 #endif
 

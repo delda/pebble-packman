@@ -16,9 +16,24 @@ function configuredWeather() {
   return storedValue === null ? config.showWeather.default : storedValue === 'true';
 }
 
+function supportsSteps() {
+  if (typeof Pebble.getActiveWatchInfo !== 'function') return false;
+  var platform = Pebble.getActiveWatchInfo().platform;
+  return platform === 'gabbro' || platform === 'chalk';
+}
+
+function configuredSteps() {
+  var storedValue = localStorage.getItem('showSteps');
+  return storedValue === null ? config.showSteps.default : storedValue === 'true';
+}
+
 function configurationPage(showBluetoothIcon, batteryMode) {
   var checked = showBluetoothIcon ? ' checked' : '';
   var weatherChecked = configuredWeather() ? ' checked' : '';
+  var stepsChecked = configuredSteps() ? ' checked' : '';
+  var stepsOption = supportsSteps()
+      ? '<p><label><input id="steps" type="checkbox"' + stepsChecked + '> ' +
+        config.showSteps.label + '</label></p>' : '';
   var batteryOptions = config.batteryMode.options.map(function(option) {
     var selected = option.value === batteryMode ? ' selected' : '';
     return '<option value="' + option.value + '"' + selected + '>' + option.label + '</option>';
@@ -32,12 +47,14 @@ function configurationPage(showBluetoothIcon, batteryMode) {
       '<select id="battery">' + batteryOptions + '</select></p>' +
       '<p><label><input id="weather" type="checkbox"' + weatherChecked + '> ' +
       config.showWeather.label + '</label></p>' +
+      stepsOption +
       '<p><button id="save">Save</button></p><script>' +
       'document.getElementById("save").onclick=function(){var value=document.getElementById("bluetooth").checked;' +
       'var battery=document.getElementById("battery").value;' +
       'var weather=document.getElementById("weather").checked;' +
       'location.href="pebblejs://close#"+encodeURIComponent(JSON.stringify({' +
-      'showBluetoothIcon:value,batteryMode:battery,showWeather:weather}));};</script>' +
+      'showBluetoothIcon:value,batteryMode:battery,showWeather:weather,' +
+      'showSteps:document.getElementById("steps")?document.getElementById("steps").checked:false}));};</script>' +
       '</body></html>');
 }
 
@@ -45,6 +62,9 @@ Pebble.addEventListener('ready', function() {
   Pebble.sendAppMessage({ ShowBluetoothIcon: configuredValue() ? 1 : 0 });
   Pebble.sendAppMessage({ BatteryMode: parseInt(configuredBatteryMode(), 10) });
   Pebble.sendAppMessage({ WeatherEnabled: configuredWeather() ? 1 : 0 });
+  if (supportsSteps()) {
+    Pebble.sendAppMessage({ StepsEnabled: configuredSteps() ? 1 : 0 });
+  }
 });
 
 Pebble.addEventListener('appmessage', function(event) {
@@ -66,6 +86,10 @@ Pebble.addEventListener('webviewclosed', function(event) {
   localStorage.setItem('showBluetoothIcon', settings.showBluetoothIcon ? 'true' : 'false');
   localStorage.setItem('batteryMode', settings.batteryMode);
   localStorage.setItem('showWeather', settings.showWeather ? 'true' : 'false');
+  if (supportsSteps()) {
+    localStorage.setItem('showSteps', settings.showSteps ? 'true' : 'false');
+    Pebble.sendAppMessage({ StepsEnabled: settings.showSteps ? 1 : 0 });
+  }
   Pebble.sendAppMessage({ ShowBluetoothIcon: settings.showBluetoothIcon ? 1 : 0 });
   Pebble.sendAppMessage({ BatteryMode: parseInt(settings.batteryMode, 10) });
   Pebble.sendAppMessage({ WeatherEnabled: settings.showWeather ? 1 : 0 });

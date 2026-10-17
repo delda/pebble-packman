@@ -3,6 +3,7 @@
 #include "battery.h"
 #include "bluetooth.h"
 #include "weather.h"
+#include "steps.h"
 
 #define PERSIST_KEY_SHOW_BLUETOOTH_ICON 1
 // Eight int32 settings need 89 bytes; the outgoing weather state needs 9.
@@ -43,6 +44,12 @@ static void inbox_received_handler(DictionaryIterator *iterator, void *context) 
     mark_face_dirty();
   }
   if (battery_mode) battery_set_mode(battery_mode->value->int32);
+  Tuple *steps_enabled = dict_find(iterator, MESSAGE_KEY_StepsEnabled);
+  if (steps_enabled) steps_set_enabled(steps_enabled->value->int32 != 0);
+#ifdef PBL_DEBUG
+  Tuple *steps_preview_count = dict_find(iterator, MESSAGE_KEY_StepsPreviewCount);
+  if (steps_preview_count) steps_set_preview_count(steps_preview_count->value->int32);
+#endif
   if (bluetooth_connected) {
     s_connected = bluetooth_connected->value->int32 != 0;
     mark_face_dirty();

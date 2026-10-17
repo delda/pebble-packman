@@ -88,6 +88,7 @@ capture_weather() {
     "10005=21" # Deterministic current temperature
     "10006=$icon"
     "10007=$(date +%s)"
+    "10009=0"  # Keep steps hidden for weather-only captures
   )
 
   pebble emu-battery --emulator "$PLATFORM" --percent 100
