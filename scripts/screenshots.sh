@@ -117,7 +117,7 @@ capture_combination() {
   if [[ -n "$bluetooth_state" ]]; then
     app_message+=("10003=$([[ "$bluetooth_state" == yes ]] && echo 1 || echo 0)")
   fi
-  pebble emu-battery --emulator "$PLATFORM" --percent 100
+  pebble emu-battery --emulator "$PLATFORM" --percent 75
   set_screenshot_time
 
   # Disconnecting Chalk here prevents send-app-message from fetching watch info.

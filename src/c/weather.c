@@ -14,7 +14,8 @@
 #define WEATHER_FONT FONT_KEY_GOTHIC_24_BOLD
 #define WEATHER_TEXT_WIDTH 50
 #define WEATHER_TEXT_HEIGHT 28
-#define WEATHER_TEXT_OFFSET_Y -5
+// Align the visible digits of Gothic 24 Bold with the icon's vertical center.
+#define WEATHER_TEXT_OFFSET_Y -7
 #else
 #define WEATHER_FONT FONT_KEY_GOTHIC_18_BOLD
 #define WEATHER_TEXT_WIDTH 38

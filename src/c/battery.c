@@ -44,10 +44,12 @@ int battery_get_width(void) {
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || \
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
-  return 21;
+  const int width = 21;
 #else
-  return BATTERY_WIDTH;
+  const int width = BATTERY_WIDTH;
 #endif
+  // Keep three digits and the percent sign readable inside the rounded shell.
+  return width + (s_battery_mode == BATTERY_MODE_PERCENTAGE ? 6 : 0);
 }
 
 void battery_initialize(Layer *face_layer) {
@@ -72,55 +74,48 @@ void battery_draw(GContext *ctx, GPoint center) {
   if (s_battery_mode == BATTERY_MODE_HIDDEN) {
     return;
   }
-  // Same proportions as pebble-BinaryWatchFace; the center comes from layout.c.
-  // Nine 1px bars with 1px spacing need 17px of inner width; leave one
-  // additional pixel for the outline so the last bar stays inside the body.
+  const int width = battery_get_width();
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || \
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
-  // Compact platforms leave one white pixel after the ninth 1px bar.
-  const int width = 21;
-#else
-  const int width = BATTERY_WIDTH;
-#endif
-#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || \
-    defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
-    defined(PBL_PLATFORM_DIORITE)
-  // Golden-ratio height: 21 / 1.618 ≈ 13 pixels.
   const int height = 13;
+  const int border = 1;
+  const int corner_radius = 3;
 #else
-  // Golden-ratio height: 30 / 1.618 ≈ 18.5, rounded to 19 pixels.
   const int height = BATTERY_HEIGHT;
+  const int border = 2;
+  const int corner_radius = 4;
 #endif
   const int x = center.x - width / 2;
   const int y = center.y - height / 2;
-#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || \
-    defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
-    defined(PBL_PLATFORM_DIORITE)
-  const int button_y = y + 3;
-  const int button_height = height - 6;
-#else
-  const int button_y = y + 3;
-  const int button_height = 12;
-#endif
+  const int button_height = height / 3;
+  const int button_y = y + (height - button_height) / 2;
+  const int inner_width = width - 2 * border;
+  const int inner_height = height - 2 * border;
+  const int inner_radius = corner_radius - border;
 
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_context_set_text_color(ctx, GColorBlack);
 
+  // A rounded shell and a solid charge area, with the positive terminal right.
+  graphics_fill_rect(ctx, GRect(x, y, width, height), corner_radius, GCornersAll);
+  graphics_fill_rect(ctx, GRect(x + width, button_y, 2, button_height), 0, GCornerNone);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, GRect(x + border, y + border, inner_width, inner_height),
+                     inner_radius, GCornersAll);
+  graphics_context_set_fill_color(ctx, GColorBlack);
+
   if (s_battery_mode == BATTERY_MODE_PERCENTAGE) {
     char battery_text[5];
     snprintf(battery_text, sizeof(battery_text), "%d%%", s_battery_level);
-    graphics_draw_rect(ctx, GRect(x, y, width, height));
 #if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || \
     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_APLITE) || \
     defined(PBL_PLATFORM_DIORITE)
-    graphics_fill_rect(ctx, GRect(x + width, button_y, 2, button_height), 0, GCornerNone);
     graphics_draw_text(ctx, battery_text, fonts_get_system_font(FONT_KEY_GOTHIC_14),
                        GRect(x - 2, y - 3, width + 4, height + 2), GTextOverflowModeFill,
                        GTextAlignmentCenter, NULL);
 #else
-    graphics_fill_rect(ctx, GRect(x + width, button_y, 2, button_height), 0, GCornerNone);
     graphics_draw_text(ctx, battery_text, fonts_get_system_font(FONT_KEY_GOTHIC_18),
                        GRect(x - 2, y - 3, width + 4, 14), GTextOverflowModeFill,
                        GTextAlignmentCenter, NULL);
@@ -128,12 +123,13 @@ void battery_draw(GContext *ctx, GPoint center) {
     return;
   }
 
-  graphics_draw_rect(ctx, GRect(x, y, width, height));
-  graphics_fill_rect(ctx, GRect(x + width, button_y, 2, button_height), 0, GCornerNone);
-  int battery_blocks = s_battery_level / 10;
-  if (battery_blocks > 9) battery_blocks = 9;
-  for (int block = 0; block < battery_blocks; ++block) {
-    graphics_fill_rect(ctx, GRect(x + 2 + block * 2, y + 2, 1, height - 4), 0, GCornerNone);
+  int level = s_battery_level;
+  if (level < 0) level = 0;
+  if (level > 100) level = 100;
+  const int fill_width = (inner_width * level + 50) / 100;
+  if (fill_width > 0) {
+    graphics_fill_rect(ctx, GRect(x + border, y + border, fill_width, inner_height),
+                       inner_radius, GCornersLeft);
   }
 }
 
