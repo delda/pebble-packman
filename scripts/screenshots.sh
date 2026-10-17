@@ -132,7 +132,8 @@ capture_combination() {
   if [[ -n "$bluetooth_state" ]]; then
     app_message+=("10003=$([[ "$bluetooth_state" == yes ]] && echo 1 || echo 0)")
   fi
-  if [[ "$PLATFORM" == "gabbro" || "$PLATFORM" == "chalk" || "$PLATFORM" == "emery" ]]; then
+  if [[ "$PLATFORM" == "gabbro" || "$PLATFORM" == "chalk" ||
+        "$PLATFORM" == "emery" || "$PLATFORM" == "basalt" ]]; then
     app_message+=("10009=$steps_for_capture")
     # Older Chalk firmware does not accept the emulator's health injection.
     # This non-persistent preview is handled only by the debug watchface build.

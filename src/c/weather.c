@@ -276,16 +276,25 @@ void weather_draw(GContext *ctx, GPoint origin) {
   GSize temperature_size = graphics_text_layout_get_content_size(
       temperature, font, GRect(0, 0, WEATHER_TEXT_WIDTH, WEATHER_TEXT_HEIGHT),
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
+#if defined(PBL_PLATFORM_BASALT)
+  // Share the icon row and text baseline with Basalt's stacked step indicator.
+  const GRect text_bounds = GRect(origin.x - temperature_size.w / 2, origin.y,
+                                  temperature_size.w, WEATHER_TEXT_HEIGHT);
+  origin.x -= WEATHER_ICON_WIDTH / 2;
+  origin.y -= 18;
+#else
   int content_width = WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP + temperature_size.w;
   origin.x -= content_width / 2;
   origin.y -= WEATHER_HEIGHT / 2;
+  const GRect text_bounds = GRect(origin.x + WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP,
+                                  origin.y + WEATHER_TEXT_OFFSET_Y,
+                                  temperature_size.w, WEATHER_TEXT_HEIGHT);
+#endif
 
   draw_icon(ctx, data.has_data ? data.forecast_icon : WEATHER_ICON_UNAVAILABLE, origin);
   graphics_context_set_text_color(ctx, GColorBlack);
   graphics_draw_text(ctx, temperature, font,
-                     GRect(origin.x + WEATHER_ICON_WIDTH + WEATHER_TEXT_GAP,
-                           origin.y + WEATHER_TEXT_OFFSET_Y, temperature_size.w,
-                           WEATHER_TEXT_HEIGHT),
+                     text_bounds,
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 
