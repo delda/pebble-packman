@@ -46,11 +46,12 @@ GPoint layout_get_point(Layer *layer, int element_count, int element_index) {
 
 #if defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
     defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
-    defined(PBL_PLATFORM_FLINT)
+    defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE)
   // Inset the two side slots when all four indicators are shown so the weather
   // and five-digit step count stay inside the white dial.
   if (element_count == 4) {
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
     // Two compact stacked groups share the 80px-wide white playfield.
     if (point == LAYOUT_POINT_2) result.x += 13;
     if (point == LAYOUT_POINT_5) result.x -= 13;

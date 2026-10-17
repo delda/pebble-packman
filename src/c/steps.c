@@ -4,11 +4,12 @@
 
 #if (defined(PBL_PLATFORM_GABBRO) || defined(PBL_PLATFORM_CHALK) || \
      defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_BASALT) || \
-    defined(PBL_PLATFORM_FLINT)) && defined(PBL_HEALTH)
+     defined(PBL_PLATFORM_FLINT) || defined(PBL_PLATFORM_DIORITE)) && defined(PBL_HEALTH)
 
 #define PERSIST_KEY_STEPS_ENABLED 0xF
 #define STEPS_TEXT_GAP 2
-#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
 #define STEPS_ICON_WIDTH 19
 #define STEPS_FONT FONT_KEY_GOTHIC_18_BOLD
 #define STEPS_TEXT_WIDTH 60
@@ -39,7 +40,8 @@ static int s_preview_count = -1;
 static const GPathInfo s_shoe_path = {
   .num_points = 13,
   .points = (GPoint[]) {
-#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
     {2, 15}, {2, 9}, {3, 8}, {2, 6}, {2, 4}, {3, 3}, {8, 3},
     {9, 4}, {9, 6}, {8, 8}, {9, 8}, {15, 11}, {17, 15},
 #else
@@ -127,7 +129,8 @@ void steps_draw(GContext *ctx, GPoint center) {
   GSize text_size = graphics_text_layout_get_content_size(
       text, font, GRect(0, 0, STEPS_TEXT_WIDTH, STEPS_TEXT_HEIGHT),
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
   // Stack the compact shoe above the count to fit the narrow white playfield.
   const GPoint origin = GPoint(center.x - STEPS_ICON_WIDTH / 2, center.y - 18);
   const GRect text_bounds = GRect(center.x - text_size.w / 2, center.y,
@@ -153,7 +156,8 @@ void steps_draw(GContext *ctx, GPoint center) {
     gpath_draw_outline(ctx, s_shoe);
   }
   // Cuff and shoe panels from the original vector.
-#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_CHALK) || defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
   graphics_draw_line(ctx, GPoint(origin.x + 3, origin.y + 8),
                      GPoint(origin.x + 8, origin.y + 8));
   graphics_draw_line(ctx, GPoint(origin.x + 9, origin.y + 8),

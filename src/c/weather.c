@@ -276,7 +276,8 @@ void weather_draw(GContext *ctx, GPoint origin) {
   GSize temperature_size = graphics_text_layout_get_content_size(
       temperature, font, GRect(0, 0, WEATHER_TEXT_WIDTH, WEATHER_TEXT_HEIGHT),
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT)
+#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_FLINT) || \
+    defined(PBL_PLATFORM_DIORITE)
   // Share the icon row and text baseline with Basalt's stacked step indicator.
   const GRect text_bounds = GRect(origin.x - temperature_size.w / 2, origin.y,
                                   temperature_size.w, WEATHER_TEXT_HEIGHT);
